@@ -1,12 +1,23 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useAuthStore } from "@/app/store/auth.store";
 import { Button } from "@/components/ui/button";
 import { UserMenu } from "@/components/user-menu";
 
-export function Navbar() {
-  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+export function Navbar({ initialIsAuthenticated }: { initialIsAuthenticated?: boolean }) {
+  const storeIsAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    // Rehydrate store on mount
+    useAuthStore.persist.rehydrate();
+    setMounted(true);
+  }, []);
+
+  // Use prop on server/first-render, then store thereafter
+  const isAuthenticated = mounted ? storeIsAuthenticated : initialIsAuthenticated;
 
   return (
     <nav className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur supports-backdrop-filter:bg-background/60">
