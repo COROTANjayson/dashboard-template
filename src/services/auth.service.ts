@@ -1,5 +1,5 @@
 import api from "@/lib/api";
-import { ApiResponse, LoginResponse, RegisterPayload, User } from "@/types/auth";
+import { ApiResponse, LoginResponse, RegisterPayload, User, AuthTokens } from "@/types/auth";
 
 export const authService = {
   login: async (data: any) => {
@@ -14,6 +14,11 @@ export const authService = {
 
   getMe: async () => {
     const response = await api.get<ApiResponse<User>>("/users/me");
+    return response.data.data;
+  },
+
+  refreshToken: async () => {
+    const response = await api.post<ApiResponse<AuthTokens>>("/auth/refresh");
     return response.data.data;
   },
 };
