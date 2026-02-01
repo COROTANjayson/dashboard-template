@@ -1,7 +1,8 @@
 import { cookies } from "next/headers";
 import { AuthGuard } from "@/components/auth-guard";
 import { AppSidebar } from "@/components/sidebar";
-import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
+import { SidebarProviderWrapper } from "@/components/sidebar-provider-wrapper";
 import { Separator } from "@/components/ui/separator";
 import { UserMenu } from "@/components/user-menu";
 
@@ -11,12 +12,11 @@ export default async function SettingsLayout({
   children: React.ReactNode;
 }) {
   const cookieStore = await cookies();
-  const defaultOpen = cookieStore.get("sidebar:state")?.value === "true";
   const isAuthenticated = !!cookieStore.get("accessToken")?.value;
 
   return (
     <AuthGuard initialIsAuthenticated={isAuthenticated}>
-      <SidebarProvider defaultOpen={defaultOpen}>
+      <SidebarProviderWrapper>
         <AppSidebar />
         <SidebarInset>
           <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
@@ -33,7 +33,7 @@ export default async function SettingsLayout({
              {children}
           </div>
         </SidebarInset>
-      </SidebarProvider>
+      </SidebarProviderWrapper>
     </AuthGuard>
   );
 }

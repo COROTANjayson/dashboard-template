@@ -17,9 +17,12 @@ import {
 } from "@/components/ui/sidebar";
 import { OrganizationSwitcher } from "@/components/organization-switcher";
 
-const navItems = [
+const mainNavItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/service", label: "Service", icon: Server },
+];
+
+const accountNavItems = [
   { href: "/profile", label: "Profile", icon: User },
   { href: "/delete", label: "Delete Account", icon: Trash2 },
 ];
@@ -37,7 +40,28 @@ export function AppSidebar() {
           <SidebarGroupLabel>Application</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {navItems.map((item) => {
+              {mainNavItems.map((item) => {
+                const isActive = pathname === item.href;
+                return (
+                  <SidebarMenuItem key={item.href}>
+                    <SidebarMenuButton asChild isActive={isActive}>
+                      <Link href={item.href}>
+                        <item.icon />
+                        <span>{item.label}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>Account</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {accountNavItems.map((item) => {
                 const isActive = pathname === item.href;
                 return (
                   <SidebarMenuItem key={item.href}>
