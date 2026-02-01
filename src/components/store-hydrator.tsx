@@ -21,15 +21,17 @@ export function StoreHydrator({
   const setAuth = useAuthStore((state) => state.setAuth);
   const setCurrentOrganization = useOrganizationStore((state) => state.setCurrentOrganization);
 
-  if (!hasHydrated.current) {
-    if (user) {
-      setAuth({ user, isAuthenticated: true });
+  useEffect(() => {
+    if (!hasHydrated.current) {
+      if (user) {
+        setAuth({ user, isAuthenticated: true });
+      }
+      if (currentOrganization) {
+        setCurrentOrganization(currentOrganization);
+      }
+      hasHydrated.current = true;
     }
-    if (currentOrganization) {
-      setCurrentOrganization(currentOrganization);
-    }
-    hasHydrated.current = true;
-  }
+  }, [user, currentOrganization, setAuth, setCurrentOrganization]);
 
   return <>{children}</>;
 }
