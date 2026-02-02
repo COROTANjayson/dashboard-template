@@ -79,7 +79,7 @@ export function ProfileView() {
   }
 
   return (
-    <div className="container max-w-4xl py-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <PageHeader 
         title="Profile Settings" 
         description="Manage your account information and preferences." 

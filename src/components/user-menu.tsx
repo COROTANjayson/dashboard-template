@@ -1,10 +1,20 @@
 "use client";
 
-import { useMemo, useRef } from "react";
+import { useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/app/store/auth.store";
 import { cn } from "@/lib/utils";
 import api from "@/lib/api";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { User, Settings, LogOut } from "lucide-react";
 
 function getInitials(name?: string, email?: string) {
   const safeName = (name ?? "").trim();
@@ -22,9 +32,7 @@ function getInitials(name?: string, email?: string) {
 
 export function UserMenu({ className }: { className?: string }) {
   const router = useRouter();
-  const detailsRef = useRef<HTMLDetailsElement>(null);
 
-  // Select values separately to keep snapshots stable (avoids React 18 warning).
   const user = useAuthStore((state) => state.user);
   const logout = useAuthStore((state) => state.logout);
 
@@ -33,17 +41,15 @@ export function UserMenu({ className }: { className?: string }) {
 
   const initials = useMemo(() => getInitials(name, email), [name, email]);
 
-  const close = () => {
-    detailsRef.current?.removeAttribute("open");
-  };
-
   const handleProfile = () => {
-    close();
     router.push("/profile");
   };
 
+  const handleAccount = () => {
+    router.push("/account");
+  };
+
   const handleLogout = async () => {
-    close();
     try {
       await api.post("/auth/logout");
     } catch (error) {
@@ -54,37 +60,41 @@ export function UserMenu({ className }: { className?: string }) {
   };
 
   return (
-    <details ref={detailsRef} className={cn("relative", className)}>
-      <summary className="cursor-pointer list-none rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring [&::-webkit-details-marker]:hidden">
-        <div className="flex h-9 w-9 items-center justify-center rounded-full border bg-muted text-xs font-semibold text-foreground">
-          {initials}
-        </div>
-      </summary>
-
-      <div className="absolute right-0 mt-2 w-64 overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-md">
-        <div className="border-b px-3 py-2">
-          <div className="text-sm font-medium leading-none">{name}</div>
-          <div className="mt-1 truncate text-xs text-muted-foreground">{email || "—"}</div>
-        </div>
-
-        <div className="p-1">
-          <button
-            type="button"
-            onClick={handleProfile}
-            className="w-full rounded-sm px-2 py-2 text-left text-sm hover:bg-accent hover:text-accent-foreground"
-          >
-            Profile
-          </button>
-          <button
-            type="button"
-            onClick={handleLogout}
-            className="w-full rounded-sm px-2 py-2 text-left text-sm hover:bg-accent hover:text-accent-foreground"
-          >
-            Logout
-          </button>
-        </div>
-      </div>
-    </details>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button className={cn("cursor-pointer rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring", className)}>
+          <div className="flex h-9 w-9 items-center justify-center rounded-full border bg-muted text-xs font-semibold text-foreground transition-colors hover:bg-accent">
+            {initials}
+          </div>
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent className="w-64" align="end" forceMount>
+        <DropdownMenuLabel className="font-normal">
+          <div className="flex flex-col space-y-1">
+            <p className="text-sm font-medium leading-none">{name}</p>
+            <p className="text-xs leading-none text-muted-foreground">
+              {email || "—"}
+            </p>
+          </div>
+        </DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuGroup>
+          <DropdownMenuItem onClick={handleProfile}>
+            <User className="mr-2 h-4 w-4" />
+            <span>Profile</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={handleAccount}>
+            <Settings className="mr-2 h-4 w-4" />
+            <span>Account</span>
+          </DropdownMenuItem>
+        </DropdownMenuGroup>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:bg-destructive/10 dark:focus:bg-destructive/20 focus:text-destructive">
+          <LogOut className="mr-2 h-4 w-4" />
+          <span>Logout</span>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
 

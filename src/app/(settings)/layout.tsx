@@ -1,11 +1,11 @@
 import { cookies } from "next/headers";
 import { AuthGuard } from "@/components/auth-guard";
-import { MainSidebar } from "@/components/main-sidebar";
-import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
-import { MainSidebarProvider } from "@/components/main-sidebar-provider";
 import { StoreHydrator } from "@/components/store-hydrator";
 import { Separator } from "@/components/ui/separator";
 import { UserMenu } from "@/components/user-menu";
+import { SettingsNav } from "@/components/settings-nav";
+import Link from "next/link";
+import { ChevronLeft } from "lucide-react";
 
 export default async function SettingsLayout({
   children,
@@ -24,24 +24,36 @@ export default async function SettingsLayout({
   return (
     <AuthGuard initialIsAuthenticated={isAuthenticated}>
       <StoreHydrator user={user} currentOrganization={currentOrganization}>
-        <MainSidebarProvider>
-          <MainSidebar />
-        <SidebarInset>
-          <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
-            <div className="flex items-center gap-2 px-4">
-              <SidebarTrigger className="-ml-1" />
-              <Separator orientation="vertical" className="mr-2 h-4" />
+        <div className="flex min-h-screen flex-col bg-background">
+          <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center justify-between border-b bg-background px-6">
+            <div className="flex items-center gap-4">
+               <Link 
+                href="/dashboard" 
+                className="flex items-center text-sm font-medium text-muted-foreground hover:text-foreground"
+              >
+                <ChevronLeft className="mr-1 h-4 w-4" />
+                Back to Dashboard
+              </Link>
+              <Separator orientation="vertical" className="h-4" />
               <h1 className="text-lg font-semibold">Settings</h1>
             </div>
-            <div className="ml-auto flex items-center gap-2 px-4">
-              <UserMenu />
-            </div>
+            <UserMenu />
           </header>
-          <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-             {children}
-          </div>
-        </SidebarInset>
-      </MainSidebarProvider>
+          
+          <main className="flex-1 px-6 py-8">
+            <div className="mx-auto max-w-6xl">
+              <div className="flex flex-col gap-8 md:flex-row">
+                <aside className="w-full md:w-64">
+                  <SettingsNav />
+                </aside>
+                <Separator orientation="vertical" className="hidden h-auto self-stretch md:block" />
+                <div className="flex-1">
+                  {children}
+                </div>
+              </div>
+            </div>
+          </main>
+        </div>
       </StoreHydrator>
     </AuthGuard>
   );
