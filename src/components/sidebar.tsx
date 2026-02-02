@@ -14,6 +14,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import { OrganizationSwitcher } from "@/components/organization-switcher";
 
@@ -29,6 +30,13 @@ const accountNavItems = [
 
 export function AppSidebar() {
   const pathname = usePathname();
+  const { state, setOpen } = useSidebar();
+
+  const handleItemClick = () => {
+    if (state === "collapsed") {
+      setOpen(true);
+    }
+  };
 
   return (
     <Sidebar collapsible="icon">
@@ -44,7 +52,7 @@ export function AppSidebar() {
                 const isActive = pathname === item.href;
                 return (
                   <SidebarMenuItem key={item.href}>
-                    <SidebarMenuButton asChild isActive={isActive}>
+                    <SidebarMenuButton asChild isActive={isActive} onClick={handleItemClick}>
                       <Link href={item.href}>
                         <item.icon />
                         <span>{item.label}</span>
@@ -65,7 +73,7 @@ export function AppSidebar() {
                 const isActive = pathname === item.href;
                 return (
                   <SidebarMenuItem key={item.href}>
-                    <SidebarMenuButton asChild isActive={isActive}>
+                    <SidebarMenuButton asChild isActive={isActive} onClick={handleItemClick}>
                       <Link href={item.href}>
                         <item.icon />
                         <span>{item.label}</span>
