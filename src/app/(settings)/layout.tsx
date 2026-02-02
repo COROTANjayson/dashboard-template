@@ -1,8 +1,8 @@
 import { cookies } from "next/headers";
 import { AuthGuard } from "@/components/auth-guard";
-import { AppSidebar } from "@/components/sidebar";
+import { MainSidebar } from "@/components/main-sidebar";
 import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
-import { SidebarProviderWrapper } from "@/components/sidebar-provider-wrapper";
+import { MainSidebarProvider } from "@/components/main-sidebar-provider";
 import { StoreHydrator } from "@/components/store-hydrator";
 import { Separator } from "@/components/ui/separator";
 import { UserMenu } from "@/components/user-menu";
@@ -24,8 +24,8 @@ export default async function SettingsLayout({
   return (
     <AuthGuard initialIsAuthenticated={isAuthenticated}>
       <StoreHydrator user={user} currentOrganization={currentOrganization}>
-        <SidebarProviderWrapper>
-          <AppSidebar />
+        <MainSidebarProvider>
+          <MainSidebar />
         <SidebarInset>
           <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
             <div className="flex items-center gap-2 px-4">
@@ -41,7 +41,7 @@ export default async function SettingsLayout({
              {children}
           </div>
         </SidebarInset>
-      </SidebarProviderWrapper>
+      </MainSidebarProvider>
       </StoreHydrator>
     </AuthGuard>
   );
