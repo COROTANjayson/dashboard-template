@@ -22,9 +22,15 @@ export default async function DashboardLayout({
   const orgCookie = cookieStore.get("currentOrganization")?.value;
   const currentOrganization = orgCookie ? JSON.parse(orgCookie) : null;
 
+  const accessToken = cookieStore.get("accessToken")?.value || null;
+
   return (
     <AuthGuard initialIsAuthenticated={isAuthenticated}>
-      <StoreHydrator user={user} currentOrganization={currentOrganization}>
+      <StoreHydrator 
+        user={user} 
+        currentOrganization={currentOrganization}
+        accessToken={accessToken}
+      >
         <MainSidebarProvider>
           <MainSidebar />
         <SidebarInset>

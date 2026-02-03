@@ -9,12 +9,14 @@ import { Organization } from "@/types/organization";
 interface StoreHydratorProps {
   user: User | null;
   currentOrganization: Organization | null;
+  accessToken: string | null;
   children: React.ReactNode;
 }
 
 export function StoreHydrator({
   user,
   currentOrganization,
+  accessToken,
   children,
 }: StoreHydratorProps) {
   const hasHydrated = useRef(false);
@@ -23,15 +25,19 @@ export function StoreHydrator({
 
   useEffect(() => {
     if (!hasHydrated.current) {
-      if (user) {
-        setAuth({ user, isAuthenticated: true });
+      if (user || accessToken) {
+        setAuth({ 
+          user, 
+          accessToken,
+          isAuthenticated: !!accessToken 
+        });
       }
       if (currentOrganization) {
         setCurrentOrganization(currentOrganization);
       }
       hasHydrated.current = true;
     }
-  }, [user, currentOrganization, setAuth, setCurrentOrganization]);
+  }, [user, currentOrganization, accessToken, setAuth, setCurrentOrganization]);
 
   return <>{children}</>;
 }

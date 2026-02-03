@@ -88,9 +88,13 @@ api.interceptors.response.use(
 
         processQueue(null, accessToken);
         return api(originalRequest);
-      } catch (err) {
+      } catch (err: any) {
         processQueue(err, null);
-        useAuthStore.getState().logout();
+        // Only logout if it's a definitive auth failure (400 or 401)
+        // Avoid logout on server restart/network error (err.response being undefined or other statuses)
+        if (err.response?.status === 401 || err.response?.status === 400) {
+          useAuthStore.getState().logout();
+        }
         return Promise.reject(err);
       } finally {
         isRefreshing = false;

@@ -25,7 +25,10 @@ export default function SessionProvider({ children }: { children: React.ReactNod
 
   useEffect(() => {
     if (isError) {
-      logout();
+      const error = isError as any;
+      if (error.response?.status === 401) {
+        logout();
+      }
     }
   }, [isError, logout]);
 
