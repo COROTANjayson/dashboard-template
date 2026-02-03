@@ -1,5 +1,5 @@
 import api from "@/lib/api";
-import { Organization, OrganizationInvitation, OrganizationMember } from "@/types/organization";
+import { Organization, OrganizationInvitation, OrganizationMember, OrganizationMemberStatus } from "@/types/organization";
 
 export const fetchUserOrganizations = async (): Promise<Organization[]> => {
   const { data } = await api.get("/organizations");
@@ -28,4 +28,18 @@ export const inviteMember = async (orgId: string, email: string, role: string): 
 
 export const revokeInvitation = async (orgId: string, invitationId: string): Promise<void> => {
   await api.delete(`/organizations/${orgId}/invitations/${invitationId}`);
+};
+
+export const updateMemberRole = async (orgId: string, userId: string, role: string): Promise<OrganizationMember> => {
+  const { data } = await api.patch(`/organizations/${orgId}/members/${userId}/role`, { role });
+  return data.data;
+};
+
+export const updateMemberStatus = async (orgId: string, userId: string, status: OrganizationMemberStatus): Promise<OrganizationMember> => {
+  const { data } = await api.patch(`/organizations/${orgId}/members/${userId}/status`, { status });
+  return data.data;
+};
+
+export const removeMember = async (orgId: string, userId: string): Promise<void> => {
+  await api.delete(`/organizations/${orgId}/members/${userId}`);
 };

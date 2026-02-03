@@ -3,13 +3,13 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useOrganizationStore } from "@/app/store/organization.store";
-import { fetchOrganizationMembers, fetchOrganizationInvitations, revokeInvitation } from "@/services/organization.service";
+import { fetchOrganizationMembers, fetchOrganizationInvitations, revokeInvitation, updateMemberRole, updateMemberStatus, removeMember } from "@/services/organization.service";
 import { Skeleton } from "@/components/ui/skeleton";
-import { OrganizationMemberStatus } from "@/types/organization";
+import { OrganizationMemberStatus, OrganizationRole } from "@/types/organization";
 import { cn } from "@/lib/utils";
 import { InviteMemberDialog } from "@/components/invite-member-dialog";
 import { CountdownTimer } from "@/components/countdown-timer";
-import { Trash2, Loader2, AlertTriangle } from "lucide-react";
+import { Trash2, Loader2, AlertTriangle, ShieldCheck, UserMinus, UserCheck, MoreVertical } from "lucide-react";
 import { toast } from "sonner";
 import {
   AlertDialog,
@@ -28,7 +28,17 @@ export default function MembersPage() {
   const { currentOrganization } = useOrganizationStore();
   const [activeTab, setActiveTab] = useState<StatusTab>("active");
   const [revokingInvitationId, setRevokingInvitationId] = useState<string | null>(null);
+  const [suspendingMemberId, setSuspendingMemberId] = useState<string | null>(null);
+  const [removingMemberId, setRemovingMemberId] = useState<string | null>(null);
   const queryClient = useQueryClient();
+
+  // Role constants for the selector
+  const roles = [
+    { value: OrganizationRole.ADMIN, label: "Admin" },
+    { value: OrganizationRole.MEMBER, label: "Member" },
+  ];
+
+  const canManage = currentOrganization?.role === OrganizationRole.ADMIN || currentOrganization?.role === OrganizationRole.OWNER;
 
   const { data: members, isLoading: isMembersLoading } = useQuery({
     queryKey: ["members", currentOrganization?.id],
@@ -40,6 +50,41 @@ export default function MembersPage() {
     queryKey: ["invitations", currentOrganization?.id],
     queryFn: () => fetchOrganizationInvitations(currentOrganization!.id),
     enabled: !!currentOrganization?.id && activeTab === "invited",
+  });
+
+  const updateRoleMutation = useMutation({
+    mutationFn: ({ userId, role }: { userId: string; role: OrganizationRole }) =>
+      updateMemberRole(currentOrganization!.id, userId, role),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["members", currentOrganization?.id] });
+      toast.success("Member role updated");
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || "Failed to update role");
+    },
+  });
+
+  const updateStatusMutation = useMutation({
+    mutationFn: ({ userId, status }: { userId: string; status: OrganizationMemberStatus }) =>
+      updateMemberStatus(currentOrganization!.id, userId, status),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["members", currentOrganization?.id] });
+      toast.success(`Member ${data.status === OrganizationMemberStatus.ACTIVE ? "reactivated" : "suspended"}`);
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || "Failed to update status");
+    },
+  });
+
+  const removeMemberMutation = useMutation({
+    mutationFn: (userId: string) => removeMember(currentOrganization!.id, userId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["members", currentOrganization?.id] });
+      toast.success("Member removed from organization");
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || "Failed to remove member");
+    },
   });
 
   const revokeMutation = useMutation({
@@ -123,7 +168,7 @@ export default function MembersPage() {
                 <th className="h-10 px-4 text-left align-middle font-medium text-muted-foreground">
                    {activeTab === "invited" ? "Sent At" : "Joined At"}
                 </th>
-                {activeTab === "invited" && (
+                {(activeTab === "invited" || canManage) && (
                   <th className="h-10 px-4 text-right align-middle font-medium text-muted-foreground">Actions</th>
                 )}
               </tr>
@@ -178,15 +223,29 @@ export default function MembersPage() {
                   </td>
                   <td className="p-4 align-middle">{member.user?.email}</td>
                   <td className="p-4 align-middle">
-                    <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold bg-secondary text-secondary-foreground">
-                      {member.role}
-                    </span>
+                    {canManage && member.role !== OrganizationRole.OWNER ? (
+                      <select
+                        value={member.role}
+                        onChange={(e) => updateRoleMutation.mutate({ userId: member.userId, role: e.target.value as OrganizationRole })}
+                        disabled={updateRoleMutation.isPending && updateRoleMutation.variables?.userId === member.userId}
+                        className="bg-transparent text-xs font-semibold focus:outline-none cursor-pointer hover:underline disabled:opacity-50"
+                      >
+                        {roles.map((r) => (
+                          <option key={r.value} value={r.value}>{r.label}</option>
+                        ))}
+                      </select>
+                    ) : (
+                      <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold bg-secondary text-secondary-foreground">
+                        {member.role}
+                      </span>
+                    )}
                   </td>
                   <td className="p-4 align-middle">
                     <span className={cn(
                       "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium border",
                       member.status === OrganizationMemberStatus.ACTIVE && "bg-green-100 text-green-700 border-green-200",
-                      (member.status === OrganizationMemberStatus.SUSPENDED || member.status === OrganizationMemberStatus.LEFT) && "bg-red-100 text-red-700 border-red-200"
+                      member.status === OrganizationMemberStatus.SUSPENDED && "bg-yellow-100 text-yellow-700 border-yellow-200",
+                      member.status === OrganizationMemberStatus.LEFT && "bg-red-100 text-red-700 border-red-200"
                     )}>
                       {member.status}
                     </span>
@@ -194,6 +253,40 @@ export default function MembersPage() {
                   <td className="p-4 align-middle text-muted-foreground">
                     {member.joinedAt ? new Date(member.joinedAt).toLocaleDateString() : "-"}
                   </td>
+                  {canManage && (
+                    <td className="p-4 align-middle text-right">
+                      {member.role !== OrganizationRole.OWNER && (
+                        <div className="flex justify-end gap-2">
+                          {member.status === OrganizationMemberStatus.ACTIVE ? (
+                            <button
+                              onClick={() => setSuspendingMemberId(member.userId)}
+                              disabled={updateStatusMutation.isPending && updateStatusMutation.variables?.userId === member.userId}
+                              className="text-muted-foreground hover:text-yellow-600 transition-colors disabled:opacity-50"
+                              title="Suspend Member"
+                            >
+                              <UserMinus className="h-4 w-4" />
+                            </button>
+                          ) : member.status === OrganizationMemberStatus.SUSPENDED ? (
+                            <button
+                              onClick={() => updateStatusMutation.mutate({ userId: member.userId, status: OrganizationMemberStatus.ACTIVE })}
+                              disabled={updateStatusMutation.isPending && updateStatusMutation.variables?.userId === member.userId}
+                              className="text-muted-foreground hover:text-green-600 transition-colors disabled:opacity-50"
+                              title="Reactivate Member"
+                            >
+                              <UserCheck className="h-4 w-4" />
+                            </button>
+                          ) : null}
+                          <button
+                            onClick={() => setRemovingMemberId(member.userId)}
+                            className="text-muted-foreground hover:text-destructive transition-colors"
+                            title="Remove Member"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      )}
+                    </td>
+                  )}
                 </tr>
               ))}
               {!isLoading && (
@@ -248,6 +341,93 @@ export default function MembersPage() {
                 </>
               ) : (
                 "Revoke Invitation"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog 
+        open={!!suspendingMemberId} 
+        onOpenChange={(open) => !open && setSuspendingMemberId(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <UserMinus className="h-5 w-5 text-yellow-600" />
+              Suspend Member
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to suspend this member? They will no longer be able to access organization resources until reactivated.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={updateStatusMutation.isPending}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                if (suspendingMemberId) {
+                  updateStatusMutation.mutate(
+                    { userId: suspendingMemberId, status: OrganizationMemberStatus.SUSPENDED },
+                    { onSuccess: () => setSuspendingMemberId(null) }
+                  );
+                }
+              }}
+              className="bg-yellow-600 text-white hover:bg-yellow-700"
+              disabled={updateStatusMutation.isPending}
+            >
+              {updateStatusMutation.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Suspending...
+                </>
+              ) : (
+                "Suspend Member"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog 
+        open={!!removingMemberId} 
+        onOpenChange={(open) => !open && setRemovingMemberId(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <Trash2 className="h-5 w-5 text-destructive" />
+              Remove Member
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to remove this member? This action is permanent and they will lose all access to organization resources immediately.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={removeMemberMutation.isPending}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                if (removingMemberId) {
+                  removeMemberMutation.mutate(removingMemberId, {
+                    onSuccess: () => setRemovingMemberId(null),
+                  });
+                }
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={removeMemberMutation.isPending}
+            >
+              {removeMemberMutation.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Removing...
+                </>
+              ) : (
+                "Remove Member"
               )}
             </AlertDialogAction>
           </AlertDialogFooter>
