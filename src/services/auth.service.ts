@@ -26,4 +26,9 @@ export const authService = {
     const response = await api.post<ApiResponse<AuthTokens>>("/auth/refresh");
     return response.data.data;
   },
+
+  updatePassword: async (data: any) => {
+    const response = await api.patch<ApiResponse<any>>("/auth/password", data);
+    return response.data;
+  },
 };

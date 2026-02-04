@@ -11,7 +11,9 @@ import { useState, useEffect } from "react";
 import { User, UpdateUserPayload } from "@/types/auth";
 import { User as UserIcon, Mail, Calendar, UserCircle, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { PageHeader } from "@/components/shared/page-header";
+import { SettingsPageHeader } from "@/components/settings/SettingsPageHeader";
+import { SettingsPageHeaderContainer } from "@/components/settings/SettingsPageHeaderContainer";
+import { SettingsPageContainer } from "@/components/settings/SettingsPageContainer";
 
 export function ProfileView() {
   const setUser = useAuthStore((state) => state.setUser);
@@ -79,11 +81,13 @@ export function ProfileView() {
   }
 
   return (
-    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <PageHeader 
-        title="Profile Settings" 
-        description="Manage your account information and preferences." 
-      />
+    <SettingsPageContainer>
+      <SettingsPageHeaderContainer>
+        <SettingsPageHeader 
+          title="Profile Settings" 
+          description="Manage your account information and preferences." 
+        />
+      </SettingsPageHeaderContainer>
 
       <div className="flex flex-col-reverse gap-8 md:grid md:grid-cols-[1fr_250px]">
         <div className="space-y-6">
@@ -231,7 +235,7 @@ export function ProfileView() {
           </Card>
         </div>
       </div>
-    </div>
+    </SettingsPageContainer>
   );
 }
 
