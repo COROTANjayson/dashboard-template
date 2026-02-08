@@ -10,7 +10,7 @@ interface AuthState {
   user: User | null;
   accessToken: string | null;
   refreshToken: string | null;
-  login: (data: { user: User; accessToken: string; refreshToken: string }) => void;
+  login: (data: { accessToken: string; refreshToken: string }, user?: User) => void;
   logout: () => void;
   setUser: (user: User) => void;
   setTokens: (tokens: { accessToken: string; refreshToken: string }) => void;
@@ -24,13 +24,15 @@ export const useAuthStore = create<AuthState>()(
       user: null,
       accessToken: null,
       refreshToken: null,
-      login: (data) => {
+      login: (data, user) => {
         Cookies.set("accessToken", data.accessToken, { expires: 1 });
         Cookies.set("refreshToken", data.refreshToken, { expires: 30 });
-        Cookies.set("user", JSON.stringify(data.user), { expires: 30 });
+        if (user) {
+          Cookies.set("user", JSON.stringify(user), { expires: 30 });
+        }
         set({
           isAuthenticated: true,
-          user: data.user,
+          user: user || null,
           accessToken: data.accessToken,
           refreshToken: data.refreshToken,
         });

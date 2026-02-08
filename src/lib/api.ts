@@ -75,11 +75,10 @@ api.interceptors.response.use(
           { withCredentials: true }
         );
 
-        const { accessToken, refreshToken } = data.data;
+        const { accessToken } = data.data;
 
         useAuthStore.getState().setAuth({
           accessToken,
-          refreshToken,
           isAuthenticated: true,
         });
 

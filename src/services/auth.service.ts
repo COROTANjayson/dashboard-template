@@ -1,5 +1,5 @@
 import api from "@/lib/api";
-import { ApiResponse, LoginResponse, RegisterPayload, User, AuthTokens } from "@/types/auth";
+import { ApiResponse, LoginResponse, RegisterResponse, RegisterPayload, User, AuthTokens } from "@/types/auth";
 
 export const authService = {
   login: async (data: any) => {
@@ -8,7 +8,7 @@ export const authService = {
   },
   
   register: async (data: RegisterPayload) => {
-    const response = await api.post<ApiResponse<LoginResponse>>("/auth/register", data);
+    const response = await api.post<ApiResponse<RegisterResponse>>("/auth/register", data);
     return response.data.data;
   },
 

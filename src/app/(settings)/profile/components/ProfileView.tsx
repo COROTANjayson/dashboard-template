@@ -235,9 +235,9 @@ export function ProfileView() {
                 <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Verified Status</span>
                 <span className={cn(
                   "text-xs font-semibold px-2 py-1 rounded-full",
-                  user?.isEmailVerified ? "bg-emerald-500/10 text-emerald-500" : "bg-amber-500/10 text-amber-500"
+                  user?.isVerified ? "bg-emerald-500/10 text-emerald-500" : "bg-amber-500/10 text-amber-500"
                 )}>
-                  {user?.isEmailVerified ? "Email Verified" : "Verification Pending"}
+                  {user?.isVerified ? "Email Verified" : "Verification Pending"}
                 </span>
               </div>
               <div className="pt-4 border-t border-accent/30 text-[10px] text-muted-foreground flex flex-col gap-1">

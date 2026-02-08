@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { AxiosError } from "axios";
-import { LoginResponse } from "@/types/auth";
+import { RegisterResponse } from "@/types/auth";
 
 export function SignupView() {
   const router = useRouter();
@@ -25,9 +25,25 @@ export function SignupView() {
 
   const { mutate: handleRegister, isPending } = useMutation({
     mutationFn: authService.register,
-    onSuccess: (data: LoginResponse) => {
-      login(data);
-      router.push("/dashboard");
+    onSuccess: async (data: RegisterResponse) => {
+      try {
+        // 1. Set tokens first so subsequent API calls have the Authorization header
+        useAuthStore.getState().setTokens({
+          accessToken: data.accessToken,
+          refreshToken: data.refreshToken,
+        });
+
+        // 2. Fetch full user info
+        const user = await authService.getMe();
+        
+        // 3. Update store with user info
+        useAuthStore.getState().setUser(user);
+        
+        router.push("/dashboard");
+      } catch (error) {
+        setErrorMessage("Failed to fetch user details.");
+        console.error("Fetch user failed:", error);
+      }
     },
     onError: (error: AxiosError<{ message: string }>) => {
       setErrorMessage(error.response?.data?.message || "Registration failed. Please try again.");

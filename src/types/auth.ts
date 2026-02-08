@@ -8,11 +8,11 @@ export interface ApiResponse<T> {
 export interface User {
   id: string;
   email: string;
-  firstName: string;
-  lastName: string;
-  age: number;
-  gender: string;
-  isEmailVerified: boolean;
+  firstName: string | null;
+  lastName: string | null;
+  age: number | null;
+  gender: string | null;
+  isVerified: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -20,7 +20,6 @@ export interface User {
 export interface UpdateUserPayload {
   firstName?: string;
   lastName?: string;
-  email?: string;
   age?: number;
   gender?: string;
 }
@@ -33,7 +32,15 @@ export interface AuthTokens {
 export interface LoginResponse {
   accessToken: string;
   refreshToken: string;
-  user?: User;
+  csrfToken: string;
+}
+
+export interface RegisterResponse {
+  id: string;
+  email: string;
+  isVerified: boolean;
+  accessToken: string;
+  refreshToken: string;
 }
 
 export interface RegisterPayload {
