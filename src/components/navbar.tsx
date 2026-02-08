@@ -30,7 +30,12 @@ export function Navbar({ initialIsAuthenticated }: { initialIsAuthenticated?: bo
         {/* Login and Sign Up buttons on the right */}
         <div className="flex items-center gap-4 ">
           {isAuthenticated ? (
-            <UserMenu />
+            <>
+              <Button variant="default" asChild>
+                <Link href="/dashboard">Go to Dashboard</Link>
+              </Button>
+              <UserMenu />
+            </>
           ) : (
             <>
               <Button variant="ghost" asChild>
