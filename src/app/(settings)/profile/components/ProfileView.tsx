@@ -230,7 +230,7 @@ export function ProfileView() {
                 {user?.email}
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4 pt-4">
+            <CardContent className="space-y-6 pt-4">
               <div className="flex flex-col gap-1 text-center">
                 <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Verified Status</span>
                 <span className={cn(

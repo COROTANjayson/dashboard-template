@@ -56,7 +56,7 @@ export function InvitationsTable({
               {invite.role}
             </span>
           </td>
-          <td className="p-4 align-middle text-orange-600">
+          <td className="p-4 align-middle text-orange-600 dark:text-orange-400">
             <CountdownTimer expiresAt={invite.expiresAt} />
           </td>
           <td className="p-4 align-middle text-muted-foreground">

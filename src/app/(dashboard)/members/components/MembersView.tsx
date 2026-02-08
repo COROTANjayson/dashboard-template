@@ -186,9 +186,11 @@ export function MembersView() {
                     Email
                   </th>
                 )}
-                <th className="h-10 px-4 text-left align-middle font-medium text-muted-foreground">
-                  Role
-                </th>
+                {activeTab !== "other" && (
+                  <th className="h-10 px-4 text-left align-middle font-medium text-muted-foreground">
+                    Role
+                  </th>
+                )}
                 <th className="h-10 px-4 text-left align-middle font-medium text-muted-foreground">
                   {activeTab === "invited" ? "Expires In" : "Status"}
                 </th>
@@ -214,6 +216,7 @@ export function MembersView() {
                 members={filteredMembers}
                 isLoading={isLoading}
                 canManage={canManage}
+                activeTab={activeTab}
                 updateRoleMutation={updateRoleMutation}
                 updateStatusMutation={updateStatusMutation}
                 setSuspendingMemberId={setSuspendingMemberId}

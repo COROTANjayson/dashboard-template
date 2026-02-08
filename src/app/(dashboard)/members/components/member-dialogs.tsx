@@ -95,7 +95,7 @@ export function MemberDialogs({
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
-              <UserMinus className="h-5 w-5 text-yellow-600" />
+              <UserMinus className="h-5 w-5 text-amber-600 dark:text-amber-400" />
               Suspend Member
             </AlertDialogTitle>
             <AlertDialogDescription>
@@ -116,7 +116,7 @@ export function MemberDialogs({
                   );
                 }
               }}
-              className="bg-yellow-600 text-white hover:bg-yellow-700"
+              className="bg-amber-600 hover:bg-amber-700 dark:bg-amber-500 dark:hover:bg-amber-600"
               disabled={updateStatusMutation.isPending}
             >
               {updateStatusMutation.isPending ? (
