@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
 import { AxiosError } from "axios";
 import { LoginResponse } from "@/types/auth";
 
@@ -55,14 +56,14 @@ export function LoginView() {
   };
 
   return (
-    <div className=" flex h-screen items-center justify-center">
+    <div className="flex items-center justify-center px-4 mt-24">
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle>Login</CardTitle>
           <CardDescription>Enter your credentials to access your account</CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
@@ -86,10 +87,10 @@ export function LoginView() {
               />
             </div>
             {errorMessage && (
-              <p className="text-sm text-red-500 text-center">{errorMessage}</p>
+              <p className="text-sm text-destructive text-center">{errorMessage}</p>
             )}
             <Button type="submit" className="w-full" disabled={isPending}>
-              {isPending ? "Logging in..." : "Login"}
+              {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Login"}
             </Button>
           </form>
           <p className="mt-4 text-center text-sm text-muted-foreground">

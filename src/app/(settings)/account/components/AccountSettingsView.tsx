@@ -71,14 +71,14 @@ export function AccountSettingsView() {
 
       <div className="grid gap-6">
         <Card>
-          <CardHeader>
+          <CardHeader className="pb-4">
             <CardTitle>Email Address</CardTitle>
             <CardDescription>
               Your email address is used for sign-in and notifications.
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid w-full max-w-sm items-center gap-1.5">
+            <div className="w-full max-w-sm space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
                 type="email"
@@ -95,15 +95,15 @@ export function AccountSettingsView() {
         </Card>
 
         <Card>
-          <CardHeader>
+          <CardHeader className="pb-4">
             <CardTitle>Change Password</CardTitle>
             <CardDescription>
               Update your password to keep your account secure.
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4 max-w-sm">
-              <div className="grid gap-1.5">
+            <form onSubmit={handleSubmit} className="space-y-6 max-w-sm">
+              <div className="space-y-2">
                 <Label htmlFor="oldPassword">Current Password</Label>
                 <Input
                   type="password"
@@ -114,7 +114,7 @@ export function AccountSettingsView() {
                   required
                 />
               </div>
-              <div className="grid gap-1.5">
+              <div className="space-y-2">
                 <Label htmlFor="newPassword">New Password</Label>
                 <Input
                   type="password"
@@ -125,7 +125,7 @@ export function AccountSettingsView() {
                   required
                 />
               </div>
-              <div className="grid gap-1.5">
+              <div className="space-y-2">
                 <Label htmlFor="confirmPassword">Confirm New Password</Label>
                 <Input
                   type="password"

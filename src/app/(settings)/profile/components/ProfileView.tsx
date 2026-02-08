@@ -7,6 +7,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useState, useEffect } from "react";
 import { User, UpdateUserPayload } from "@/types/auth";
 import { User as UserIcon, Mail, Calendar, UserCircle, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
@@ -162,18 +169,24 @@ export function ProfileView() {
                     <Label htmlFor="gender" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Gender</Label>
                     <div className="relative">
                       <UserCircle className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                      <select
-                        id="gender"
-                        className="flex h-10 w-full rounded-md border border-accent bg-background/50 px-9 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:cursor-not-allowed disabled:opacity-50 transition-all appearance-none"
+                      <Select
                         value={formData.gender}
-                        onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
+                        onValueChange={(value) =>
+                          setFormData({ ...formData, gender: value })
+                        }
                       >
-                        <option value="">Select Gender</option>
-                        <option value="male">Male</option>
-                        <option value="female">Female</option>
-                        <option value="other">Other</option>
-                        <option value="private">Prefer not to say</option>
-                      </select>
+                        <SelectTrigger className="pl-9 bg-background/50 border-accent focus:ring-2 focus:ring-primary/20 transition-all">
+                          <SelectValue placeholder="Select Gender" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="male">Male</SelectItem>
+                          <SelectItem value="female">Female</SelectItem>
+                          <SelectItem value="other">Other</SelectItem>
+                          <SelectItem value="private">
+                            Prefer not to say
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
                 </div>
