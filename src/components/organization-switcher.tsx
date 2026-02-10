@@ -56,7 +56,29 @@ export function OrganizationSwitcher() {
     );
   }
 
-  const activeOrg = currentOrganization || { name: "Select Organization", slug: "v1.0.0" };
+  if (!currentOrganization) {
+    return (
+      <SidebarMenu>
+        <SidebarMenuItem>
+          <CreateOrganizationDialog>
+            <SidebarMenuButton size="lg">
+              <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
+                <Plus className="size-4" />
+              </div>
+              <div className="grid flex-1 text-left text-sm leading-tight">
+                <span className="truncate font-semibold">
+                  Create Organization
+                </span>
+                <span className="truncate text-xs">No organization selected</span>
+              </div>
+            </SidebarMenuButton>
+          </CreateOrganizationDialog>
+        </SidebarMenuItem>
+      </SidebarMenu>
+    );
+  }
+
+  const activeOrg = currentOrganization;
 
   return (
     <SidebarMenu>

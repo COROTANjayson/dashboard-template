@@ -15,6 +15,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { User, Settings, LogOut } from "lucide-react";
+import Image from "next/image";
 
 function getInitials(name?: string, email?: string) {
   const safeName = (name ?? "").trim();
@@ -35,7 +36,7 @@ export function UserMenu({ className }: { className?: string }) {
 
   const user = useAuthStore((state) => state.user);
   const logout = useAuthStore((state) => state.logout);
-
+  console.log(user);
   const name = user ? `${user.firstName} ${user.lastName}`.trim() : "User";
   const email = user?.email?.trim() || "";
 
@@ -62,10 +63,25 @@ export function UserMenu({ className }: { className?: string }) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button className={cn("cursor-pointer rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring", className)}>
-          <div className="flex h-9 w-9 items-center justify-center rounded-full border bg-muted text-xs font-semibold text-foreground transition-colors hover:bg-accent">
-            {initials}
-          </div>
+        <button
+          className={cn(
+            "cursor-pointer rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring",
+            className,
+          )}
+        >
+          {user?.avatar ? (
+            <Image
+              src={user.avatar}
+              alt={name}
+              width={36}
+              height={36}
+              className="rounded-full object-cover"
+            />
+          ) : (
+            <div className="flex h-9 w-9 items-center justify-center rounded-full border bg-muted text-xs font-semibold text-foreground transition-colors hover:bg-accent">
+              {initials}
+            </div>
+          )}
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-64" align="end" forceMount>
@@ -89,7 +105,10 @@ export function UserMenu({ className }: { className?: string }) {
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:bg-destructive/10 dark:focus:bg-destructive/20 focus:text-destructive">
+        <DropdownMenuItem
+          onClick={handleLogout}
+          className="text-destructive focus:bg-destructive/10 dark:focus:bg-destructive/20 focus:text-destructive"
+        >
           <LogOut className="mr-2 h-4 w-4" />
           <span>Logout</span>
         </DropdownMenuItem>
@@ -97,4 +116,3 @@ export function UserMenu({ className }: { className?: string }) {
     </DropdownMenu>
   );
 }
-

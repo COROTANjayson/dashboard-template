@@ -41,12 +41,21 @@ export default async function DashboardLayout({
       console.error("Failed to fetch organizations on server", error);
     }
   }
+  
+  // Verify that the current organization is valid for the user
+  const validatedCurrentOrganization = currentOrganization && organizations.find((org: any) => org.id === currentOrganization.id) 
+    ? currentOrganization 
+    : null;
+    
+  // If we invalidated the org, we should also invalidate the role unless we can re-verify it (which we can't easily here without another call)
+  // Logic: if validatedCurrentOrganization is null, role should probably be null too.
+  const validatedCurrentRole = validatedCurrentOrganization ? currentRole : null;
 
   return (
     <AuthGuard initialIsAuthenticated={isAuthenticated}>
       <StoreHydrator 
-        currentOrganization={currentOrganization} 
-        currentRole={currentRole}
+        currentOrganization={validatedCurrentOrganization} 
+        currentRole={validatedCurrentRole}
         organizations={organizations}
       >
         <MainSidebarProvider>

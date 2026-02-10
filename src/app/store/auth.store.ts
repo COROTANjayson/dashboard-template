@@ -41,6 +41,8 @@ export const useAuthStore = create<AuthState>()(
         Cookies.remove("accessToken");
         Cookies.remove("refreshToken");
         Cookies.remove("user");
+        Cookies.remove("currentOrganization");
+        Cookies.remove("currentRole");
         set({
           isAuthenticated: false,
           user: null,
