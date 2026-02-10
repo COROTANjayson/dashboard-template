@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { GoogleAuthButton } from "@/components/google-auth-button";
 import { Loader2 } from "lucide-react";
 import { AxiosError } from "axios";
 import { RegisterResponse } from "@/types/auth";
@@ -110,6 +111,19 @@ export function SignupView() {
               {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Sign Up"}
             </Button>
           </form>
+          
+          <div className="relative my-6">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-background px-2 text-muted-foreground">
+                Or continue with
+              </span>
+            </div>
+          </div>
+
+          <GoogleAuthButton mode="signup" />
           <p className="mt-4 text-center text-sm text-muted-foreground">
             Already have an account?{" "}
             <Link href="/login" className="text-primary hover:underline">

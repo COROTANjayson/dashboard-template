@@ -12,6 +12,8 @@ export interface User {
   lastName: string | null;
   age: number | null;
   gender: string | null;
+  avatar: string | null;
+  googleId: string | null;
   isVerified: boolean;
   createdAt: string;
   updatedAt: string;
