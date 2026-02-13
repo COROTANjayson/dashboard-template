@@ -22,13 +22,13 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export function OrganizationSwitcher() {
   const { isMobile } = useSidebar();
-  const { 
-    organizations, 
+  const {
+    organizations,
     currentOrganization,
     setCurrentOrganization,
-    isHydrated 
+    isHydrated,
   } = useOrganizationStore();
-
+  console.log("organizations", organizations);
   const handleOrgChange = async (org: any) => {
     try {
       const member = await fetchCurrentMember(org.id);
@@ -69,7 +69,9 @@ export function OrganizationSwitcher() {
                 <span className="truncate font-semibold">
                   Create Organization
                 </span>
-                <span className="truncate text-xs">No organization selected</span>
+                <span className="truncate text-xs">
+                  No organization selected
+                </span>
               </div>
             </SidebarMenuButton>
           </CreateOrganizationDialog>
@@ -93,10 +95,10 @@ export function OrganizationSwitcher() {
                 <LayoutDashboard className="size-4" />
               </div>
               <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-semibold">
-                  {activeOrg.name}
+                <span className="truncate font-semibold">{activeOrg.name}</span>
+                <span className="truncate text-xs">
+                  {(activeOrg as any).slug}
                 </span>
-                <span className="truncate text-xs">{(activeOrg as any).slug}</span>
               </div>
               <ChevronsUpDown className="ml-auto size-4" />
             </SidebarMenuButton>
@@ -129,11 +131,16 @@ export function OrganizationSwitcher() {
             )}
             <DropdownMenuSeparator />
             <CreateOrganizationDialog>
-              <DropdownMenuItem className="gap-2 p-2 cursor-pointer" onSelect={(e) => e.preventDefault()}>
+              <DropdownMenuItem
+                className="gap-2 p-2 cursor-pointer"
+                onSelect={(e) => e.preventDefault()}
+              >
                 <div className="bg-background flex size-6 items-center justify-center rounded-md border">
                   <Plus className="size-4" />
                 </div>
-                <div className="text-muted-foreground font-medium">Add organization</div>
+                <div className="text-muted-foreground font-medium">
+                  Add organization
+                </div>
               </DropdownMenuItem>
             </CreateOrganizationDialog>
           </DropdownMenuContent>

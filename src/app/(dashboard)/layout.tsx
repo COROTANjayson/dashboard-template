@@ -7,6 +7,7 @@ import { StoreHydrator } from "@/components/store-hydrator";
 import { Separator } from "@/components/ui/separator";
 import { UserMenu } from "@/components/user-menu";
 import { Toaster } from "@/components/ui/sonner";
+import { NotificationList } from "@/components/notifications/notification-list";
 
 export default async function DashboardLayout({
   children,
@@ -67,6 +68,7 @@ export default async function DashboardLayout({
               <Separator orientation="vertical" className="mr-2 h-4" />
             </div>
             <div className="ml-auto flex items-center gap-2 px-4">
+              <NotificationList />
               <UserMenu />
             </div>
           </header>
