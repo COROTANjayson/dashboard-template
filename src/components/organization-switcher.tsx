@@ -28,7 +28,6 @@ export function OrganizationSwitcher() {
     setCurrentOrganization,
     isHydrated,
   } = useOrganizationStore();
-  console.log("organizations", organizations);
   const handleOrgChange = async (org: any) => {
     try {
       const member = await fetchCurrentMember(org.id);

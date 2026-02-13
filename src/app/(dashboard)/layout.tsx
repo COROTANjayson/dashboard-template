@@ -44,13 +44,29 @@ export default async function DashboardLayout({
   }
   
   // Verify that the current organization is valid for the user
-  const validatedCurrentOrganization = currentOrganization && organizations.find((org: any) => org.id === currentOrganization.id) 
-    ? currentOrganization 
-    : null;
+  let validatedCurrentOrganization = currentOrganization && organizations.find((org: any) => org.id === currentOrganization.id) ? currentOrganization : null;
     
   // If we invalidated the org, we should also invalidate the role unless we can re-verify it (which we can't easily here without another call)
   // Logic: if validatedCurrentOrganization is null, role should probably be null too.
-  const validatedCurrentRole = validatedCurrentOrganization ? currentRole : null;
+  let validatedCurrentRole = validatedCurrentOrganization ? currentRole : null;
+
+  // Fallback: If no organization is selected but the user has organizations, select the first one
+  if (!validatedCurrentOrganization && organizations.length > 0) {
+    validatedCurrentOrganization = organizations[0];
+    // We need to fetch the role for this organization since we don't have it in the cookie
+    try {
+      const roleResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/organizations/${validatedCurrentOrganization.id}/members/me`, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+      const roleData = await roleResponse.json();
+      validatedCurrentRole = roleData.data?.role || null;
+    } catch (error) {
+      console.error("Failed to fetch role for fallback organization", error);
+      validatedCurrentRole = null;
+    }
+  }
 
   return (
     <AuthGuard initialIsAuthenticated={isAuthenticated}>

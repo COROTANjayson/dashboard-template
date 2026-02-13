@@ -36,7 +36,6 @@ export function UserMenu({ className }: { className?: string }) {
 
   const user = useAuthStore((state) => state.user);
   const logout = useAuthStore((state) => state.logout);
-  console.log(user);
   const name = user ? `${user.firstName} ${user.lastName}`.trim() : "User";
   const email = user?.email?.trim() || "";
 
