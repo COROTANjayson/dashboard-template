@@ -1,8 +1,6 @@
 "use client";
 
 import { Bell } from "lucide-react";
-import { useState } from "react";
-
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -13,55 +11,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { NotificationItem } from "./notification-item";
+import { useNotificationContext } from "@/providers/notification-provider";
 
-// Mock data for notifications
-const mockNotifications = [
-  {
-    id: "1",
-    title: "New Message",
-    description: "You have a new message from Alice.",
-    time: "2m ago",
-    read: false,
-  },
-  {
-    id: "2",
-    title: "System Update",
-    description: "System maintenance scheduled for tonight.",
-    time: "1h ago",
-    read: false,
-  },
-  {
-    id: "3",
-    title: "Project Invite",
-    description: "You were invited to project 'Alpha'.",
-    time: "3h ago",
-    read: true,
-  },
-  {
-    id: "4",
-    title: "Task Assigned",
-    description: "A new task has been assigned to you.",
-    time: "5h ago",
-    read: true,
-  },
-  {
-    id: "5",
-    title: "Welcome!",
-    description: "Welcome to the new dashboard.",
-    time: "1d ago",
-    read: true,
-  },
-];
 
 export function NotificationList() {
-  const [notifications, setNotifications] = useState(mockNotifications);
-  const unreadCount = notifications.filter((n) => !n.read).length;
-
-  const markAllAsRead = () => {
-    setNotifications((prev) =>
-      prev.map((n) => ({ ...n, read: true }))
-    );
-  };
+  const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotificationContext();
 
   return (
     <DropdownMenu>
@@ -95,7 +49,6 @@ export function NotificationList() {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         
-        {/* Scrollable container locally implemented since ScrollArea might be missing */}
         <div className="max-h-[300px] overflow-y-auto">
           {notifications.length === 0 ? (
             <div className="p-4 text-center text-sm text-muted-foreground">
@@ -107,10 +60,10 @@ export function NotificationList() {
                 <NotificationItem
                   key={notification.id}
                   title={notification.title}
-                  description={notification.description}
-                  time={notification.time}
-                  read={notification.read}
-                  onClick={() => console.log(`Clicked notification ${notification.id}`)}
+                  description={notification.message}
+                  time={formatTime(notification.createdAt)}
+                  read={notification.isRead}
+                  onClick={() => markAsRead(notification.id)}
                 />
               ))}
             </div>
@@ -126,4 +79,13 @@ export function NotificationList() {
       </DropdownMenuContent>
     </DropdownMenu>
   );
+}
+
+function formatTime(dateString: string) {
+    try {
+        const date = new Date(dateString);
+        return date.toLocaleDateString() + " " + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    } catch (e) {
+        return "";
+    }
 }
