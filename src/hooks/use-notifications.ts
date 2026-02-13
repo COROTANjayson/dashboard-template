@@ -19,7 +19,33 @@ export function useNotifications(accessToken: string | null) {
     setConnectionStatus,
   } = useNotificationStore();
 
-  useEffect(() => {
+    useEffect(() => {
+        if (!accessToken) return;
+
+        const fetchNotifications = async () => {
+            try {
+                const response = await fetch(`${API_URL}/notifications`, {
+                    headers: {
+                        Authorization: `Bearer ${accessToken}`,
+                    },
+                });
+                const data = await response.json();
+                if (data.success && data.data && Array.isArray(data.data.notifications)) {
+                    setNotifications(data.data.notifications);
+                    // Also set unread count if available or calculate it
+                    // The API response for list might not include count, but we have a separate event for that.
+                    // However, we can calculate it from the list or wait for the socket event.
+                    // Better to rely on the socket for unread count to be accurate.
+                }
+            } catch (error) {
+                console.error("Failed to fetch initial notifications", error);
+            }
+        };
+
+        fetchNotifications();
+    }, [accessToken, setNotifications]);
+
+    useEffect(() => {
     if (!accessToken) {
         setConnectionStatus(false);
         return;

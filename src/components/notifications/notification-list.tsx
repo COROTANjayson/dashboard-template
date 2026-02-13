@@ -14,8 +14,43 @@ import { NotificationItem } from "./notification-item";
 import { useNotificationContext } from "@/providers/notification-provider";
 
 
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import Cookies from "js-cookie";
+
 export function NotificationList() {
   const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotificationContext();
+  const router = useRouter();
+
+  const handleAcceptInvitation = async (notificationId: string, token: string) => {
+    try {
+      const accessToken = Cookies.get("accessToken");
+      if (!accessToken) {
+        toast.error("You must be logged in to accept invitations");
+        return;
+      }
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/organizations/invitations/${token}/accept`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        toast.success("Invitation accepted successfully");
+        markAsRead(notificationId);
+        router.refresh(); // Refresh server components (sidebar, etc)
+      } else {
+        toast.error(data.message || "Failed to accept invitation");
+      }
+    } catch (error) {
+      console.error("Accept invitation error:", error);
+      toast.error("An error occurred while accepting the invitation");
+    }
+  };
 
   return (
     <DropdownMenu>
@@ -61,9 +96,23 @@ export function NotificationList() {
                   key={notification.id}
                   title={notification.title}
                   description={notification.message}
-                  time={formatTime(notification.createdAt)}
+                  time={timeAgo(notification.createdAt)}
                   read={notification.isRead}
                   onClick={() => markAsRead(notification.id)}
+                  actions={
+                    notification.type === 'MEMBER_INVITE' && !notification.isRead && notification.metadata?.token ? (
+                      <Button
+                        size="sm"
+                        className="w-full mt-2"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleAcceptInvitation(notification.id, notification.metadata.token);
+                        }}
+                      >
+                        Accept Invitation
+                      </Button>
+                    ) : null
+                  }
                 />
               ))}
             </div>
@@ -81,10 +130,37 @@ export function NotificationList() {
   );
 }
 
-function formatTime(dateString: string) {
+function timeAgo(dateString: string | Date | undefined) {
+    if (!dateString) return "";
     try {
         const date = new Date(dateString);
-        return date.toLocaleDateString() + " " + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        if (isNaN(date.getTime())) {
+            return "Invalid Date";
+        }
+        
+        const now = new Date();
+        const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+        
+        if (seconds < 60) {
+            return "just now";
+        }
+        
+        const minutes = Math.floor(seconds / 60);
+        if (minutes < 60) {
+            return `${minutes}m ago`;
+        }
+        
+        const hours = Math.floor(minutes / 60);
+        if (hours < 24) {
+             return `${hours}h ago`;
+        }
+        
+        const days = Math.floor(hours / 24);
+        if (days < 7) {
+            return `${days}d ago`;
+        }
+        
+        return date.toLocaleDateString();
     } catch (e) {
         return "";
     }

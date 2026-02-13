@@ -7,6 +7,7 @@ interface NotificationItemProps {
   time: string;
   read?: boolean;
   onClick?: () => void;
+  actions?: React.ReactNode;
 }
 
 export function NotificationItem({
@@ -15,6 +16,7 @@ export function NotificationItem({
   time,
   read = false,
   onClick,
+  actions,
 }: NotificationItemProps) {
   return (
     <div
@@ -37,6 +39,7 @@ export function NotificationItem({
         <p className="line-clamp-2 text-xs text-muted-foreground">
           {description}
         </p>
+        {actions && <div className="mt-2" onClick={(e) => e.stopPropagation()}>{actions}</div>}
       </div>
       {!read && (
         <span className="mt-1 block h-2 w-2 shrink-0 rounded-full bg-primary" />
