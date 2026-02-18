@@ -57,6 +57,7 @@ export const getInvitationDetails = async (token: string): Promise<{
     invitation: OrganizationInvitation;
     organization: { name: string };
     inviter: { name: string; email: string };
+    isExistingMember: boolean;
 }> => {
   const { data } = await api.get(`/organizations/invites/${token}`);
   return data.data;
