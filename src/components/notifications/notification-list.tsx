@@ -15,41 +15,14 @@ import { useNotificationContext } from "@/providers/notification-provider";
 
 
 import { useRouter } from "next/navigation";
-import { toast } from "sonner";
-import Cookies from "js-cookie";
 
 export function NotificationList() {
   const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotificationContext();
   const router = useRouter();
 
-  const handleAcceptInvitation = async (notificationId: string, token: string) => {
-    try {
-      const accessToken = Cookies.get("accessToken");
-      if (!accessToken) {
-        toast.error("You must be logged in to accept invitations");
-        return;
-      }
-
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/organizations/invitations/${token}/accept`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      });
-
-      const data = await response.json();
-
-      if (response.ok && data.success) {
-        toast.success("Invitation accepted successfully");
-        markAsRead(notificationId);
-        router.refresh(); // Refresh server components (sidebar, etc)
-      } else {
-        toast.error(data.message || "Failed to accept invitation");
-      }
-    } catch (error) {
-      console.error("Accept invitation error:", error);
-      toast.error("An error occurred while accepting the invitation");
-    }
+  const handleRedirect = (notificationId: string, url: string) => {
+      markAsRead(notificationId);
+      router.push(url);
   };
 
   return (
@@ -91,30 +64,34 @@ export function NotificationList() {
             </div>
           ) : (
             <div className="flex flex-col">
-              {notifications.map((notification) => (
-                <NotificationItem
-                  key={notification.id}
-                  title={notification.title}
-                  description={notification.message}
-                  time={timeAgo(notification.createdAt)}
-                  read={notification.isRead}
-                  onClick={() => markAsRead(notification.id)}
-                  actions={
-                    notification.type === 'MEMBER_INVITE' && !notification.isRead && notification.metadata?.token ? (
-                      <Button
-                        size="sm"
-                        className="w-full mt-2"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleAcceptInvitation(notification.id, notification.metadata.token);
-                        }}
-                      >
-                        Accept Invitation
-                      </Button>
-                    ) : null
-                  }
-                />
-              ))}
+              {notifications.map((notification) => {
+                  const actionUrl = notification.metadata?.actionUrl || (notification.metadata?.token ? `/invites/accept?token=${notification.metadata.token}` : null);
+
+                  return (
+                    <NotificationItem
+                      key={notification.id}
+                      title={notification.title}
+                      description={notification.message}
+                      time={timeAgo(notification.createdAt)}
+                      read={notification.isRead}
+                      onClick={() => markAsRead(notification.id)}
+                      actions={
+                        (notification.type === 'ORGANIZATION_INVITE' || notification.type === 'MEMBER_INVITE') && !notification.isRead && actionUrl ? (
+                            <Button
+                                size="sm"
+                                className="w-full mt-2"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleRedirect(notification.id, actionUrl);
+                                }}
+                            >
+                                View Invitation
+                            </Button>
+                        ) : null
+                      }
+                    />
+                  );
+              })}
             </div>
           )}
         </div>

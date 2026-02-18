@@ -48,3 +48,16 @@ export const updateMemberStatus = async (orgId: string, userId: string, status: 
 export const removeMember = async (orgId: string, userId: string): Promise<void> => {
   await api.delete(`/organizations/${orgId}/members/${userId}`);
 };
+
+export const acceptInvite = async (token: string): Promise<void> => {
+  await api.post("/organizations/invites/accept", { token });
+};
+
+export const getInvitationDetails = async (token: string): Promise<{
+    invitation: OrganizationInvitation;
+    organization: { name: string };
+    inviter: { name: string; email: string };
+}> => {
+  const { data } = await api.get(`/organizations/invites/${token}`);
+  return data.data;
+};

@@ -28,7 +28,12 @@ export function InviteMemberDialog() {
   const [role, setRole] = useState<string>(OrganizationRole.MEMBER);
 
   const inviteMutation = useMutation({
-    mutationFn: () => inviteMember(currentOrganization!.id, email, role),
+    mutationFn: () => {
+        if (!currentOrganization?.id) {
+            throw new Error("Organization not selected");
+        }
+        return inviteMember(currentOrganization.id, email, role);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["invitations", currentOrganization?.id] });
       toast.success("Invitation sent successfully");
@@ -37,7 +42,8 @@ export function InviteMemberDialog() {
       setRole(OrganizationRole.MEMBER);
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.message || "Failed to send invitation");
+      console.log("error", error)
+      toast.error(error.response?.data?.message || error.message || "Failed to send invitation");
     },
   });
 
@@ -50,7 +56,7 @@ export function InviteMemberDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="sm">
+        <Button size="sm" disabled={!currentOrganization}>
           <Plus className="mr-2 h-4 w-4" />
           Invite Member
         </Button>
