@@ -2,9 +2,9 @@ import { useEffect, useRef, useCallback } from "react";
 import { io, Socket } from "socket.io-client";
 import { useNotificationStore } from "@/app/store/notification.store";
 import { toast } from "sonner";
+import { notificationService } from "@/services/notification.service";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
-const SOCKET_URL = API_URL.replace("/api/v1", "");
+const SOCKET_URL = process.env.NEXT_PUBLIC_API_URL?.replace("/api/v1", "") || "http://localhost:3000";
 
 export function useNotifications(accessToken: string | null) {
   const socketRef = useRef<Socket | null>(null);
@@ -24,18 +24,9 @@ export function useNotifications(accessToken: string | null) {
 
         const fetchNotifications = async () => {
             try {
-                const response = await fetch(`${API_URL}/notifications`, {
-                    headers: {
-                        Authorization: `Bearer ${accessToken}`,
-                    },
-                });
-                const data = await response.json();
-                if (data.success && data.data && Array.isArray(data.data.notifications)) {
+                const data = await notificationService.getAll();
+                if (data.data && Array.isArray(data.data.notifications)) {
                     setNotifications(data.data.notifications);
-                    // Also set unread count if available or calculate it
-                    // The API response for list might not include count, but we have a separate event for that.
-                    // However, we can calculate it from the list or wait for the socket event.
-                    // Better to rely on the socket for unread count to be accurate.
                 }
             } catch (error) {
                 console.error("Failed to fetch initial notifications", error);
@@ -91,11 +82,14 @@ export function useNotifications(accessToken: string | null) {
     });
 
     socket.on("notification-read", (data: { notificationId: string }) => {
-        // Logic handled in optimistic update, but can sync here if needed
+        // This handles sync across multiple tabs/devices
+        // If the user marks as read in Tab A, Tab B receives this event
+        markStoreRead(data.notificationId);
     });
 
     socket.on("all-notifications-read", () => {
-       // Logic handled in optimistic update
+       // Sync "Mark all as read" across tabs
+       markStoreAllRead();
     });
 
     // Cleanup on unmount
@@ -107,16 +101,27 @@ export function useNotifications(accessToken: string | null) {
   }, [accessToken, setNotifications, addNotification, setUnreadCount, setConnectionStatus]);
 
   // Methods to emit events
-  const markAsRead = useCallback((notificationId: string) => {
+  const markAsRead = useCallback(async (notificationId: string) => {
     // Optimistic update
     markStoreRead(notificationId);
-    socketRef.current?.emit("mark-as-read", { notificationId });
+    
+    try {
+        await notificationService.markAsRead(notificationId);
+    } catch (error) {
+        console.error("Failed to mark notification as read", error);
+        // We could revert the optimistic update here if needed
+    }
   }, [markStoreRead]);
 
-  const markAllAsRead = useCallback(() => {
+  const markAllAsRead = useCallback(async () => {
     // Optimistic update
     markStoreAllRead();
-    socketRef.current?.emit("mark-all-read");
+
+    try {
+        await notificationService.markAllAsRead();
+    } catch (error) {
+        console.error("Failed to mark all notifications as read", error);
+    }
   }, [markStoreAllRead]);
 
   return {
