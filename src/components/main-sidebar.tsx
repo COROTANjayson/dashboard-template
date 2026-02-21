@@ -23,6 +23,7 @@ import { OrganizationRole } from "@/types/organization";
 
 const mainNavItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/teams", label: "Teams", icon: Users },
   { href: "/service", label: "Service", icon: Server },
 ];
 
