@@ -1,5 +1,5 @@
 import api from "@/lib/api";
-import { Team, TeamMember, CreateTeamInput, UpdateTeamInput } from "@/types/team";
+import { Team, TeamMember, CreateTeamInput, UpdateTeamInput, AddTeamMembersResult } from "@/types/team";
 
 export const fetchTeams = async (orgId: string): Promise<Team[]> => {
   const { data } = await api.get(`/organizations/${orgId}/teams`);
@@ -31,8 +31,8 @@ export const fetchTeamMembers = async (orgId: string, teamId: string): Promise<T
   return data.data;
 };
 
-export const addTeamMember = async (orgId: string, teamId: string, userId: string): Promise<TeamMember> => {
-  const { data } = await api.post(`/organizations/${orgId}/teams/${teamId}/members`, { userId });
+export const addTeamMembers = async (orgId: string, teamId: string, userIds: string[]): Promise<AddTeamMembersResult> => {
+  const { data } = await api.post(`/organizations/${orgId}/teams/${teamId}/members`, { userIds });
   return data.data;
 };
 

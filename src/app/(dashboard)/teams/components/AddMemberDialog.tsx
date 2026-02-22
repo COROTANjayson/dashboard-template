@@ -4,7 +4,7 @@ import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useOrganizationStore } from "@/app/store/organization.store";
 import { fetchOrganizationMembers } from "@/services/organization.service";
-import { addTeamMember } from "@/services/team.service";
+import { addTeamMembers } from "@/services/team.service";
 import { TeamMember } from "@/types/team";
 import {
   Dialog,
@@ -18,7 +18,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, UserPlus } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Loader2, UserPlus, X, Check } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -30,7 +31,7 @@ interface AddMemberDialogProps {
 export function AddMemberDialog({ teamId, existingMembers }: AddMemberDialogProps) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
-  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [selectedUserIds, setSelectedUserIds] = useState<Set<string>>(new Set());
   const { currentOrganization } = useOrganizationStore();
   const queryClient = useQueryClient();
 
@@ -57,48 +58,89 @@ export function AddMemberDialog({ teamId, existingMembers }: AddMemberDialogProp
       });
   }, [orgMembers, existingUserIds, search]);
 
+  const toggleUser = (userId: string) => {
+    setSelectedUserIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(userId)) {
+        next.delete(userId);
+      } else {
+        next.add(userId);
+      }
+      return next;
+    });
+  };
+
   const { mutate, isPending } = useMutation({
-    mutationFn: () => addTeamMember(currentOrganization!.id, teamId, selectedUserId!),
-    onSuccess: () => {
+    mutationFn: () =>
+      addTeamMembers(currentOrganization!.id, teamId, Array.from(selectedUserIds)),
+    onSuccess: (result) => {
       queryClient.invalidateQueries({
         queryKey: ["team-members", currentOrganization?.id, teamId],
       });
       queryClient.invalidateQueries({
         queryKey: ["teams", currentOrganization?.id],
       });
-      toast.success("Member added to team");
+      const count = result.added.length;
+      toast.success(`${count} member${count !== 1 ? "s" : ""} added to team`);
       setOpen(false);
-      setSelectedUserId(null);
+      setSelectedUserIds(new Set());
       setSearch("");
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.message || "Failed to add member");
+      toast.error(error.response?.data?.message || "Failed to add members");
     },
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedUserId) return;
+    if (selectedUserIds.size === 0) return;
     mutate();
   };
 
+  // Get display names for selected user chips
+  const selectedMembers = useMemo(() => {
+    if (!orgMembers) return [];
+    return orgMembers.filter((m) => selectedUserIds.has(m.userId));
+  }, [orgMembers, selectedUserIds]);
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) { setSelectedUserIds(new Set()); setSearch(""); } }}>
       <DialogTrigger asChild>
         <Button size="sm">
           <UserPlus className="mr-2 h-4 w-4" />
-          Add Member
+          Add Members
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle>Add Team Member</DialogTitle>
+          <DialogTitle>Add Team Members</DialogTitle>
           <DialogDescription>
-            Select an organization member to add to this team.
+            Select organization members to add to this team.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="space-y-4 py-4">
+            {/* Selected chips */}
+            {selectedMembers.length > 0 && (
+              <div className="flex flex-wrap gap-1.5">
+                {selectedMembers.map((m) => {
+                  const name = [m.user?.firstName, m.user?.lastName].filter(Boolean).join(" ") || m.user?.email || "Unknown";
+                  return (
+                    <Badge key={m.userId} variant="secondary" className="gap-1 pr-1">
+                      {name}
+                      <button
+                        type="button"
+                        onClick={() => toggleUser(m.userId)}
+                        className="ml-0.5 rounded-full p-0.5 hover:bg-muted-foreground/20"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </Badge>
+                  );
+                })}
+              </div>
+            )}
+
             <div className="space-y-2">
               <Label htmlFor="member-search">Search Members</Label>
               <Input
@@ -122,30 +164,34 @@ export function AddMemberDialog({ teamId, existingMembers }: AddMemberDialogProp
                   const name = [member.user?.firstName, member.user?.lastName]
                     .filter(Boolean)
                     .join(" ") || member.user?.email || "Unknown";
-                  const isSelected = selectedUserId === member.userId;
+                  const isSelected = selectedUserIds.has(member.userId);
 
                   return (
                     <button
                       key={member.userId}
                       type="button"
-                      onClick={() => setSelectedUserId(member.userId)}
+                      onClick={() => toggleUser(member.userId)}
                       className={cn(
                         "flex w-full items-center gap-3 rounded-md px-3 py-2 text-left text-sm transition-colors",
                         isSelected
-                          ? "bg-primary text-primary-foreground"
+                          ? "bg-primary/10 text-primary"
                           : "hover:bg-muted",
                       )}
                     >
-                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-medium uppercase">
-                        {(member.user?.firstName?.[0] || member.user?.email?.[0] || "?").toUpperCase()}
+                      <div className={cn(
+                        "flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-medium uppercase",
+                        isSelected ? "bg-primary text-primary-foreground" : "bg-muted",
+                      )}>
+                        {isSelected ? (
+                          <Check className="h-4 w-4" />
+                        ) : (
+                          (member.user?.firstName?.[0] || member.user?.email?.[0] || "?").toUpperCase()
+                        )}
                       </div>
                       <div className="min-w-0 flex-1">
                         <p className="truncate font-medium">{name}</p>
                         {member.user?.email && name !== member.user.email && (
-                          <p className={cn(
-                            "truncate text-xs",
-                            isSelected ? "text-primary-foreground/70" : "text-muted-foreground",
-                          )}>
+                          <p className="truncate text-xs text-muted-foreground">
                             {member.user.email}
                           </p>
                         )}
@@ -164,11 +210,11 @@ export function AddMemberDialog({ teamId, existingMembers }: AddMemberDialogProp
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={isPending || !selectedUserId}>
+            <Button type="submit" disabled={isPending || selectedUserIds.size === 0}>
               {isPending ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
-                "Add Member"
+                `Add ${selectedUserIds.size || ""} Member${selectedUserIds.size !== 1 ? "s" : ""}`
               )}
             </Button>
           </DialogFooter>
