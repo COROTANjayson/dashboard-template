@@ -3,6 +3,7 @@
 import { useState, useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useOrganizationStore } from "@/app/store/organization.store";
+import { useAuthStore } from "@/app/store/auth.store";
 import { createTeam } from "@/services/team.service";
 import { fetchOrganizationMembers } from "@/services/organization.service";
 import {
@@ -30,6 +31,7 @@ export function CreateTeamDialog() {
   const [memberSearch, setMemberSearch] = useState("");
   const [selectedMemberIds, setSelectedMemberIds] = useState<Set<string>>(new Set());
   const { currentOrganization } = useOrganizationStore();
+  const { user: currentUser } = useAuthStore();
   const queryClient = useQueryClient();
 
   const { data: orgMembers } = useQuery({
@@ -41,7 +43,7 @@ export function CreateTeamDialog() {
   const filteredMembers = useMemo(() => {
     if (!orgMembers) return [];
     return orgMembers
-      .filter((m) => m.status === "active")
+      .filter((m) => m.status === "active" && m.userId !== currentUser?.id)
       .filter((m) => {
         if (!memberSearch) return true;
         const text = `${m.user?.firstName || ""} ${m.user?.lastName || ""} ${m.user?.email || ""}`.toLowerCase();
