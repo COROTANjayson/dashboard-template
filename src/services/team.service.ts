@@ -39,3 +39,7 @@ export const addTeamMembers = async (orgId: string, teamId: string, userIds: str
 export const removeTeamMember = async (orgId: string, teamId: string, userId: string): Promise<void> => {
   await api.delete(`/organizations/${orgId}/teams/${teamId}/members/${userId}`);
 };
+
+export const deleteTeam = async (orgId: string, teamId: string): Promise<void> => {
+  await api.delete(`/organizations/${orgId}/teams/${teamId}`);
+};
