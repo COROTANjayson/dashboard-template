@@ -1,6 +1,7 @@
 import axios from "axios";
 import { useAuthStore } from "@/app/store/auth.store";
 import { useOrganizationStore } from "@/app/store/organization.store";
+import Cookies from "js-cookie";
 
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL, // Adjust base URL as needed
@@ -81,6 +82,8 @@ api.interceptors.response.use(
           accessToken,
           isAuthenticated: true,
         });
+
+        Cookies.set("accessToken", accessToken, { expires: 30 });
 
         api.defaults.headers.common["Authorization"] = "Bearer " + accessToken;
         originalRequest.headers["Authorization"] = "Bearer " + accessToken;
