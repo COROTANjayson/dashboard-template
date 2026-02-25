@@ -20,10 +20,10 @@ export function MainSidebarProvider({
 
   React.useEffect(() => {
     if (mounted && !isOpen) {
-      setIsOpen(true);
+      // Intentionally not forcing isOpen to true on pathname changes
+      // to allow the sidebar to remain collapsed when navigating.
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pathname, mounted]);
+  }, [mounted]);
 
   if (!mounted) {
     return (

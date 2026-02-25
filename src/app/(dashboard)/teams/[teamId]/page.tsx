@@ -4,11 +4,10 @@ import { useParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { useOrganizationStore } from "@/app/store/organization.store";
 import { fetchTeam } from "@/services/team.service";
-import { TeamsView } from "../components/TeamsView";
 import { Loader2, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-export default function TeamDetailPage() {
+export default function TeamDashboardPage() {
   const params = useParams();
   const teamId = params.teamId as string;
   const { currentOrganization } = useOrganizationStore();
@@ -37,5 +36,28 @@ export default function TeamDetailPage() {
     );
   }
 
-  return <TeamsView team={team} />;
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+        <p className="text-muted-foreground mt-2">
+          Welcome to the {team.name} team dashboard.
+        </p>
+      </div>
+      
+      {/* Placeholder for future dashboard widgets */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="rounded-xl border bg-card text-card-foreground shadow">
+          <div className="p-6 flex flex-row items-center justify-between space-y-0 pb-2">
+            <h3 className="tracking-tight text-sm font-medium">Team Description</h3>
+          </div>
+          <div className="p-6 pt-0">
+            <div className="text-sm text-muted-foreground mt-1">
+              {team.description || "No description provided."}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }
