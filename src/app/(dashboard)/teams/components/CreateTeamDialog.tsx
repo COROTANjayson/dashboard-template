@@ -24,7 +24,12 @@ import { Loader2, Plus, X, Check, Users } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
-export function CreateTeamDialog() {
+interface CreateTeamDialogProps {
+  trigger?: React.ReactNode;
+  triggerClassName?: string;
+}
+
+export function CreateTeamDialog({ trigger, triggerClassName }: CreateTeamDialogProps) {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -104,9 +109,11 @@ export function CreateTeamDialog() {
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v) resetAndClose(); else setOpen(true); }}>
       <DialogTrigger asChild>
-        <Button size="icon" variant="ghost" className="h-9 w-9" aria-label="Create team">
-          <Plus className="h-4 w-4" />
-        </Button>
+        {trigger ? trigger : (
+          <Button size="icon" variant="ghost" className={cn("h-9 w-9", triggerClassName)} aria-label="Create team">
+            <Plus className="h-4 w-4" />
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent className="max-w-lg">
         <DialogHeader>
