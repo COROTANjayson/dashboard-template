@@ -145,32 +145,55 @@ export function ChatArea({ teamId }: ChatAreaProps) {
             No messages yet. Start the conversation!
           </div>
         ) : (
-          <div className="flex flex-col gap-4">
-            {messages.map((msg) => {
+          <div className="flex flex-col gap-1">
+            {messages.map((msg, index) => {
               const isMine = msg.senderId === user?.id;
+              
+              // Check if message is consecutive from same user within 5 minutes
+              let isCompact = false;
+              if (index > 0) {
+                const prevMsg = messages[index - 1];
+                const timeDiff = new Date(msg.createdAt).getTime() - new Date(prevMsg.createdAt).getTime();
+                const isSameSender = prevMsg.senderId === msg.senderId;
+                if (isSameSender && timeDiff < 5 * 60 * 1000) {
+                  isCompact = true;
+                }
+              }
+
               return (
                 <div
                   key={msg.id}
-                  className="flex gap-4 flex-row py-1"
+                  className={`flex gap-4 flex-row py-0.5 group ${isCompact ? "mt-0" : "mt-3"}`}
                 >
-                  <Avatar className="w-10 h-10 border mt-0.5">
-                    <AvatarImage src={msg.sender.avatar || undefined} />
-                    <AvatarFallback className="text-xs">
-                      {getInitials(msg.sender.firstName, msg.sender.lastName, msg.sender.email)}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex flex-col items-start flex-1 min-w-0">
-                    <div className="flex items-baseline gap-2 mb-0.5">
-                      <span className="text-[15px] font-semibold text-foreground">
-                        {isMine
-                          ? "You"
-                          : `${msg.sender.firstName || ""} ${msg.sender.lastName || ""}`.trim() ||
-                            msg.sender.email}
-                      </span>
-                      <span className="text-xs text-muted-foreground font-medium">
-                        {formatTime(msg.createdAt)}
+                  {isCompact ? (
+                    <div className="w-10 shrink-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                      <span className="text-[10px] text-muted-foreground font-medium select-none">
+                        {new Intl.DateTimeFormat("en-US", { hour: "numeric", minute: "numeric", hour12: true }).format(new Date(msg.createdAt))}
                       </span>
                     </div>
+                  ) : (
+                    <Avatar className="w-10 h-10 border mt-0.5 shrink-0">
+                      <AvatarImage src={msg.sender.avatar || undefined} />
+                      <AvatarFallback className="text-xs">
+                        {getInitials(msg.sender.firstName, msg.sender.lastName, msg.sender.email)}
+                      </AvatarFallback>
+                    </Avatar>
+                  )}
+                  
+                  <div className="flex flex-col items-start flex-1 min-w-0">
+                    {!isCompact && (
+                      <div className="flex items-baseline gap-2 mb-0.5">
+                        <span className="text-[15px] font-semibold text-foreground">
+                          {isMine
+                            ? "You"
+                            : `${msg.sender.firstName || ""} ${msg.sender.lastName || ""}`.trim() ||
+                              msg.sender.email}
+                        </span>
+                        <span className="text-xs text-muted-foreground font-medium">
+                          {formatTime(msg.createdAt)}
+                        </span>
+                      </div>
+                    )}
                     <div className="text-[15px] leading-relaxed wrap-break-word text-foreground">
                       {msg.content}
                     </div>
