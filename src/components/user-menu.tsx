@@ -69,13 +69,15 @@ export function UserMenu({ className }: { className?: string }) {
           )}
         >
           {user?.avatar ? (
-            <Image
-              src={user.avatar}
-              alt={name}
-              width={36}
-              height={36}
-              className="rounded-full object-cover"
-            />
+            <div className="relative h-9 w-9 overflow-hidden rounded-full border">
+              <Image
+                src={user.avatar}
+                alt={name}
+                fill
+                className="object-cover"
+                sizes="36px"
+              />
+            </div>
           ) : (
             <div className="flex h-9 w-9 items-center justify-center rounded-full border bg-muted text-xs font-semibold text-foreground transition-colors hover:bg-accent">
               {initials}

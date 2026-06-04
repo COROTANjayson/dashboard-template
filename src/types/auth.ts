@@ -24,6 +24,7 @@ export interface UpdateUserPayload {
   lastName?: string;
   age?: number;
   gender?: string;
+  avatar?: string;
 }
 
 export interface AuthTokens {

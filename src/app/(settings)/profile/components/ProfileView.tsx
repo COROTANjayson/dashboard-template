@@ -14,17 +14,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { User, UpdateUserPayload } from "@/types/auth";
 import { User as UserIcon, Mail, Calendar, UserCircle, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SettingsPageHeader } from "@/components/settings/SettingsPageHeader";
 import { SettingsPageHeaderContainer } from "@/components/settings/SettingsPageHeaderContainer";
 import { SettingsPageContainer } from "@/components/settings/SettingsPageContainer";
+import { uploadToStorage } from "@/lib/upload-utils";
+import Image from "next/image";
 
 export function ProfileView() {
   const setUser = useAuthStore((state) => state.setUser);
   const [isSuccessVisible, setIsSuccessVisible] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Fetch latest user data
   const { data: user, isLoading, isError, refetch } = useQuery({
@@ -47,6 +51,7 @@ export function ProfileView() {
         lastName: user.lastName || "",
         age: user.age || 0,
         gender: user.gender || "",
+        avatar: user.avatar || "",
       });
       // Sync store as well to ensure parity
       setUser(user);
@@ -67,6 +72,30 @@ export function ProfileView() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     handleUpdate(formData);
+  };
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setIsUploading(true);
+      
+      const { url } = await uploadToStorage(file, {
+        compress: true,
+        folder: "user-avatars",
+      });
+
+      // Update local form state and trigger an immediate save
+      setFormData(prev => ({ ...prev, avatar: url }));
+      handleUpdate({ ...formData, avatar: url });
+      
+    } catch (error) {
+      console.error("Failed to upload avatar:", error);
+      // You could add a toast notification here
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   if (isLoading) {
@@ -220,10 +249,33 @@ export function ProfileView() {
         <div className="space-y-6">
           <Card className="border-none bg-accent/40 backdrop-blur-sm shadow-xl">
             <CardHeader className="pb-2 text-center">
-              <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-primary/10 text-primary shadow-inner">
-                <span className="text-3xl font-bold">
-                  {(user?.firstName?.[0] || user?.email?.[0] || "U").toUpperCase()}
-                </span>
+              <div 
+                className="group relative mx-auto mb-4 flex h-24 w-24 items-center justify-center rounded-full bg-primary/10 text-primary shadow-inner overflow-hidden cursor-pointer"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                {user?.avatar ? (
+                  <Image src={user.avatar} alt="Avatar" fill className="object-cover" sizes="96px" />
+                ) : (
+                  <span className="text-3xl font-bold">
+                    {(user?.firstName?.[0] || user?.email?.[0] || "U").toUpperCase()}
+                  </span>
+                )}
+                
+                <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                  {isUploading ? (
+                    <Loader2 className="h-6 w-6 animate-spin text-white" />
+                  ) : (
+                    <span className="text-xs font-semibold text-white">Change</span>
+                  )}
+                </div>
+                <input 
+                  type="file" 
+                  accept="image/*" 
+                  className="hidden" 
+                  ref={fileInputRef}
+                  onChange={handleAvatarUpload}
+                  disabled={isUploading || isPending}
+                />
               </div>
               <CardTitle className="text-lg">{user?.firstName} {user?.lastName}</CardTitle>
               <CardDescription className="text-xs break-all">

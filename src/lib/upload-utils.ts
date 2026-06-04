@@ -32,7 +32,7 @@ export async function uploadToStorage(
 
   // 2. Request an UploadTicket from our backend (modular-monolith-api)
   // We need to pass filename and optionally the folder so backend can create a presigned link
-  const ticketRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/v1/storage/ticket`, {
+  const ticketRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1'}/storage/ticket`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ 
@@ -41,6 +41,8 @@ export async function uploadToStorage(
       folder: options.folder 
     }),
   });
+
+  console.log("ticketRes: ", ticketRes)
 
   if (!ticketRes.ok) {
     const errorData = await ticketRes.json().catch(() => ({}));
