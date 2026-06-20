@@ -2,24 +2,29 @@
 
 import { create } from "zustand";
 import Cookies from "js-cookie";
-import { Organization, OrganizationRole } from "@/types/organization";
+import { Organization, OrganizationRole, Role } from "@/types/organization";
 
 interface OrganizationState {
   organizations: Organization[];
   currentOrganization: Organization | null;
-  currentRole: OrganizationRole | null;
+  currentRole: Role | null;
   isHydrated: boolean;
   setOrganizations: (organizations: Organization[]) => void;
-  setCurrentOrganization: (organization: Organization | null, role?: OrganizationRole) => void;
+  setCurrentOrganization: (organization: Organization | null, role?: Role) => void;
   setHydrated: (hydrated: boolean) => void;
   clearOrganizations: () => void;
+  hasPermission: (permission: string) => boolean;
 }
 
-export const useOrganizationStore = create<OrganizationState>()((set) => ({
+export const useOrganizationStore = create<OrganizationState>()((set, get) => ({
   organizations: [],
   currentOrganization: null,
   currentRole: null,
   isHydrated: false,
+  hasPermission: (permission: string) => {
+    const role = get().currentRole;
+    return role?.permissions?.includes(permission) ?? false;
+  },
   setOrganizations: (organizations) => set({ organizations }),
   setHydrated: (isHydrated) => set({ isHydrated }),
   setCurrentOrganization: (organization, role) => {
@@ -31,7 +36,7 @@ export const useOrganizationStore = create<OrganizationState>()((set) => ({
       }
 
       if (role) {
-        Cookies.set("currentRole", role, { expires: 7 });
+        Cookies.set("currentRole", JSON.stringify(role), { expires: 7 });
       } else {
         Cookies.remove("currentRole");
       }

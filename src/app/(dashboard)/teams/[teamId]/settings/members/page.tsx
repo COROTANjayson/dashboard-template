@@ -15,14 +15,12 @@ import { Button } from "@/components/ui/button";
 export default function TeamMembersPage() {
   const params = useParams();
   const teamId = params.teamId as string;
-  const { currentOrganization, currentRole } = useOrganizationStore();
+  const { currentOrganization, hasPermission } = useOrganizationStore();
   const { user } = useAuthStore();
   const queryClient = useQueryClient();
 
   // Basic permission check
-  const canManage =
-    currentRole === OrganizationRole.ADMIN ||
-    currentRole === OrganizationRole.OWNER;
+  const canManage = hasPermission("team:update");
 
   const {
     data: team,

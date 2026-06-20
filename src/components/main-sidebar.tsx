@@ -32,10 +32,6 @@ const mainNavItems = [
   { href: "/service", label: "Service", icon: Server },
 ];
 
-const adminNavItems = [
-  { href: "/members", label: "Members", icon: Users },
-];
-
 // Refined gradient palette for a premium feel
 const AVATAR_GRADIENTS = [
   "bg-gradient-to-br from-violet-500 to-purple-600",
@@ -68,9 +64,9 @@ function getGradient(id: string): string {
 
 export function MainSidebar() {
   const pathname = usePathname();
-  const { currentOrganization, currentRole, isHydrated } = useOrganizationStore();
+  const { currentOrganization, hasPermission, isHydrated } = useOrganizationStore();
 
-  const canSeeAdmin = isHydrated && (currentRole === OrganizationRole.OWNER || currentRole === OrganizationRole.ADMIN);
+  const canSeeAdmin = isHydrated && hasPermission("member:list");
 
   const { data: teams, isLoading: isTeamsLoading } = useQuery({
     queryKey: ["teams", currentOrganization?.id],
@@ -101,6 +97,16 @@ export function MainSidebar() {
                   </SidebarMenuItem>
                 );
               })}
+              {canSeeAdmin && (
+                <SidebarMenuItem key="/members">
+                  <SidebarMenuButton asChild isActive={pathname === "/members"} tooltip="Members">
+                    <Link href="/members">
+                      <Users />
+                      <span>Members</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -176,27 +182,6 @@ export function MainSidebar() {
                     <Skeleton className="h-4 w-24" />
                   </SidebarMenuButton>
                 </SidebarMenuItem>
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        ) : canSeeAdmin ? (
-          <SidebarGroup>
-            <SidebarGroupLabel>Admin</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {adminNavItems.map((item) => {
-                  const isActive = pathname === item.href;
-                  return (
-                    <SidebarMenuItem key={item.href}>
-                      <SidebarMenuButton asChild isActive={isActive} tooltip={item.label}>
-                        <Link href={item.href}>
-                          <item.icon />
-                          <span>{item.label}</span>
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  );
-                })}
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>

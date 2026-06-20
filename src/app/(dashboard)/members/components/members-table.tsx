@@ -16,7 +16,10 @@ interface MembersTableProps {
   members: OrganizationMember[] | undefined;
   roles: Role[] | undefined;
   isLoading: boolean;
-  canManage: boolean;
+  canUpdateRole: boolean;
+  canUpdateStatus: boolean;
+  canRemove: boolean;
+  currentRoleName: string | null;
   activeTab?: string;
   updateRoleMutation: any;
   updateStatusMutation: any;
@@ -28,7 +31,10 @@ export function MembersTable({
   members,
   roles,
   isLoading,
-  canManage,
+  canUpdateRole,
+  canUpdateStatus,
+  canRemove,
+  currentRoleName,
   activeTab,
   updateRoleMutation,
   updateStatusMutation,
@@ -74,7 +80,7 @@ export function MembersTable({
           <td className="p-4 align-middle">{member.user?.email}</td>
           {activeTab !== "other" && (
             <td className="p-4 align-middle">
-              {canManage && member.role?.name !== 'owner' ? (
+              {canUpdateRole && (currentRoleName === 'owner' || member.role?.name !== 'owner') ? (
                 <Select
                   value={member.roleId}
                   onValueChange={(value) => 
@@ -119,29 +125,33 @@ export function MembersTable({
           <td className="p-4 align-middle text-muted-foreground">
             {member.joinedAt ? new Date(member.joinedAt).toLocaleDateString() : "-"}
           </td>
-          {canManage && (
+          {(canUpdateRole || canUpdateStatus || canRemove) && (
             <td className="p-4 align-middle text-right">
-              {member.role?.name !== 'owner' && (
-                <div className="flex justify-end gap-2">
-                  {member.status === OrganizationMemberStatus.ACTIVE ? (
-                    <button
-                      onClick={() => setSuspendingMemberId(member.userId)}
-                      disabled={updateStatusMutation.isPending && updateStatusMutation.variables?.userId === member.userId}
-                      className="text-muted-foreground hover:text-amber-600 dark:hover:text-amber-400 transition-colors disabled:opacity-50"
-                      title="Suspend Member"
-                    >
-                      <UserMinus className="h-4 w-4" />
-                    </button>
-                  ) : member.status === OrganizationMemberStatus.SUSPENDED ? (
-                    <button
-                      onClick={() => updateStatusMutation.mutate({ userId: member.userId, status: OrganizationMemberStatus.ACTIVE })}
-                      disabled={updateStatusMutation.isPending && updateStatusMutation.variables?.userId === member.userId}
-                      className="text-muted-foreground hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors disabled:opacity-50"
-                      title="Reactivate Member"
-                    >
-                      <UserCheck className="h-4 w-4" />
-                    </button>
-                  ) : null}
+              <div className="flex justify-end gap-2">
+                {canUpdateStatus && member.role?.name !== 'owner' && (
+                  <>
+                    {member.status === OrganizationMemberStatus.ACTIVE ? (
+                      <button
+                        onClick={() => setSuspendingMemberId(member.userId)}
+                        disabled={updateStatusMutation.isPending && updateStatusMutation.variables?.userId === member.userId}
+                        className="text-muted-foreground hover:text-amber-600 dark:hover:text-amber-400 transition-colors disabled:opacity-50"
+                        title="Suspend Member"
+                      >
+                        <UserMinus className="h-4 w-4" />
+                      </button>
+                    ) : member.status === OrganizationMemberStatus.SUSPENDED ? (
+                      <button
+                        onClick={() => updateStatusMutation.mutate({ userId: member.userId, status: OrganizationMemberStatus.ACTIVE })}
+                        disabled={updateStatusMutation.isPending && updateStatusMutation.variables?.userId === member.userId}
+                        className="text-muted-foreground hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors disabled:opacity-50"
+                        title="Reactivate Member"
+                      >
+                        <UserCheck className="h-4 w-4" />
+                      </button>
+                    ) : null}
+                  </>
+                )}
+                {canRemove && (currentRoleName === 'owner' || member.role?.name !== 'owner') && (
                   <button
                     onClick={() => setRemovingMemberId(member.userId)}
                     className="text-muted-foreground hover:text-destructive transition-colors"
@@ -149,8 +159,8 @@ export function MembersTable({
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>
-                </div>
-              )}
+                )}
+              </div>
             </td>
           )}
         </tr>

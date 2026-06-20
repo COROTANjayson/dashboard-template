@@ -29,7 +29,7 @@ import { PageHeaderContainer } from "@/components/shared/page-header-container";
 type StatusTab = "active" | "invited" | "other";
 
 export function MembersView() {
-  const { currentOrganization, currentRole } = useOrganizationStore();
+  const { currentOrganization, currentRole, hasPermission } = useOrganizationStore();
   const [activeTab, setActiveTab] = useState<StatusTab>("active");
   const [revokingInvitationId, setRevokingInvitationId] = useState<
     string | null
@@ -40,9 +40,11 @@ export function MembersView() {
   const [removingMemberId, setRemovingMemberId] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
-  const canManage =
-    currentRole === OrganizationRole.ADMIN ||
-    currentRole === OrganizationRole.OWNER;
+  const canInvite = hasPermission("member:invite");
+  const canUpdateRole = hasPermission("member:update-role");
+  const canUpdateStatus = hasPermission("member:update-status");
+  const canRemove = hasPermission("member:remove");
+  const canRevokeInvite = hasPermission("member:invite-revoke");
 
   const { data: members, isLoading: isMembersLoading } = useQuery({
     queryKey: ["members", currentOrganization?.id],
@@ -160,7 +162,7 @@ export function MembersView() {
           title="Members"
           description="Manage your organization members and their roles."
         />
-        <InviteMemberDialog />
+        {canInvite && <InviteMemberDialog />}
       </PageHeaderContainer>
 
       <div className="flex items-center gap-1 border-b pb-px">
@@ -204,7 +206,7 @@ export function MembersView() {
                 <th className="h-10 px-4 text-left align-middle font-medium text-muted-foreground">
                   {activeTab === "invited" ? "Sent At" : "Joined At"}
                 </th>
-                {(activeTab === "invited" || canManage) && (
+                {((activeTab === "invited" && canRevokeInvite) || (activeTab !== "invited" && (canUpdateRole || canUpdateStatus || canRemove))) && (
                   <th className="h-10 px-4 text-right align-middle font-medium text-muted-foreground">
                     Actions
                   </th>
@@ -217,13 +219,17 @@ export function MembersView() {
                 isLoading={isLoading}
                 revokeMutation={revokeMutation}
                 onRevoke={setRevokingInvitationId}
+                canRevokeInvite={canRevokeInvite}
               />
             ) : (
               <MembersTable
                 members={filteredMembers}
                 roles={roles}
                 isLoading={isLoading}
-                canManage={canManage}
+                canUpdateRole={canUpdateRole}
+                canUpdateStatus={canUpdateStatus}
+                canRemove={canRemove}
+                currentRoleName={currentRole?.name ?? null}
                 activeTab={activeTab}
                 updateRoleMutation={updateRoleMutation}
                 updateStatusMutation={updateStatusMutation}

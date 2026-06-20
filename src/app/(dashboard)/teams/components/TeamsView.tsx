@@ -26,15 +26,13 @@ interface TeamsViewProps {
 }
 
 export function TeamsView({ team }: TeamsViewProps) {
-  const { currentOrganization, currentRole } = useOrganizationStore();
+  const { currentOrganization, hasPermission } = useOrganizationStore();
   const { user } = useAuthStore();
   const queryClient = useQueryClient();
   const router = useRouter();
   const [showDeleteTeam, setShowDeleteTeam] = useState(false);
 
-  const canManage =
-    currentRole === OrganizationRole.ADMIN ||
-    currentRole === OrganizationRole.OWNER;
+  const canManage = hasPermission("team:update");
 
   // --- Queries ---
 

@@ -36,8 +36,12 @@ export function UserMenu({ className }: { className?: string }) {
 
   const user = useAuthStore((state) => state.user);
   const logout = useAuthStore((state) => state.logout);
-  const name = user ? `${user.firstName} ${user.lastName}`.trim() : "User";
   const email = user?.email?.trim() || "";
+
+  const firstName = user?.firstName && user.firstName !== "null" ? user.firstName : "";
+  const lastName = user?.lastName && user.lastName !== "null" ? user.lastName : "";
+  const fullName = `${firstName} ${lastName}`.trim();
+  const name = fullName || email || "User";
 
   const initials = useMemo(() => getInitials(name, email), [name, email]);
 

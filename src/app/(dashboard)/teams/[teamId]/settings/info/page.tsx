@@ -19,16 +19,14 @@ export default function TeamInfoPage() {
   const params = useParams();
   const teamId = params.teamId as string;
   const router = useRouter();
-  const { currentOrganization, currentRole } = useOrganizationStore();
+  const { currentOrganization, hasPermission } = useOrganizationStore();
   const { user } = useAuthStore();
   const queryClient = useQueryClient();
   
   const [showDeleteTeam, setShowDeleteTeam] = useState(false);
   const [formData, setFormData] = useState({ name: "", description: "" });
 
-  const canManage =
-    currentRole === OrganizationRole.ADMIN ||
-    currentRole === OrganizationRole.OWNER;
+  const canManage = hasPermission("team:update");
 
   const {
     data: team,

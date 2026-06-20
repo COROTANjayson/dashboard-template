@@ -126,7 +126,11 @@ export default function AcceptInvitePage() {
                 </div>
                 <div className="flex justify-between">
                     <span className="text-muted-foreground">Invited by:</span>
-                    <span className="font-medium">{inviteDetails.inviter.name}</span>
+                    <span className="font-medium">
+                        {inviteDetails.inviter.name && inviteDetails.inviter.name.trim() !== 'null null' 
+                            ? inviteDetails.inviter.name 
+                            : inviteDetails.inviter.email}
+                    </span>
                 </div>
                  <div className="flex justify-between">
                     <span className="text-muted-foreground">Role:</span>

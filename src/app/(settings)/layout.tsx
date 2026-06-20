@@ -22,7 +22,12 @@ export default async function SettingsLayout({
   const currentOrganization = orgCookie ? JSON.parse(orgCookie) : null;
   
   const roleCookie = cookieStore.get("currentRole")?.value;
-  const currentRole = (roleCookie || null) as any;
+  let currentRole = null;
+  if (roleCookie) {
+    try {
+      currentRole = roleCookie.startsWith('{') ? JSON.parse(roleCookie) : null;
+    } catch (e) {}
+  }
 
   const accessToken = cookieStore.get("accessToken")?.value || null;
 

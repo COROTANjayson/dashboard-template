@@ -2,11 +2,11 @@
 
 import { useEffect, useRef } from "react";
 import { useOrganizationStore } from "@/app/store/organization.store";
-import { Organization, OrganizationRole } from "@/types/organization";
+import { Organization, OrganizationRole, Role } from "@/types/organization";
 
 interface StoreHydratorProps {
   currentOrganization: Organization | null;
-  currentRole: OrganizationRole | null;
+  currentRole: Role | null;
   organizations: Organization[];
   children: React.ReactNode;
 }

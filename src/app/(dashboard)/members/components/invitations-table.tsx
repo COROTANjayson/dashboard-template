@@ -10,6 +10,7 @@ interface InvitationsTableProps {
   isLoading: boolean;
   revokeMutation: any;
   onRevoke: (id: string) => void;
+  canRevokeInvite: boolean;
 }
 
 export function InvitationsTable({
@@ -17,6 +18,7 @@ export function InvitationsTable({
   isLoading,
   revokeMutation,
   onRevoke,
+  canRevokeInvite,
 }: InvitationsTableProps) {
   if (isLoading) {
     return (
@@ -27,7 +29,7 @@ export function InvitationsTable({
             <td className="p-4 align-middle"><Skeleton className="h-4 w-[80px]" /></td>
             <td className="p-4 align-middle"><Skeleton className="h-4 w-[80px]" /></td>
             <td className="p-4 align-middle"><Skeleton className="h-4 w-[100px]" /></td>
-            <td className="p-4 align-middle"><Skeleton className="h-4 w-[50px] ml-auto" /></td>
+            {canRevokeInvite && <td className="p-4 align-middle"><Skeleton className="h-4 w-[50px] ml-auto" /></td>}
           </tr>
         ))}
       </tbody>
@@ -38,7 +40,7 @@ export function InvitationsTable({
     return (
       <tbody className="[&_tr:last-child]:border-0">
         <tr className="border-b transition-colors hover:bg-muted/50">
-          <td colSpan={5} className="p-8 text-center text-muted-foreground">
+          <td colSpan={canRevokeInvite ? 5 : 4} className="p-8 text-center text-muted-foreground">
             No invitations found.
           </td>
         </tr>
@@ -62,20 +64,22 @@ export function InvitationsTable({
           <td className="p-4 align-middle text-muted-foreground">
             {new Date(invite.createdAt).toLocaleDateString()}
           </td>
-          <td className="p-4 align-middle text-right">
-            <button
-              onClick={() => onRevoke(invite.id)}
-              disabled={revokeMutation.isPending && revokeMutation.variables === invite.id}
-              className="text-muted-foreground hover:text-destructive transition-colors disabled:opacity-50"
-              title="Revoke Invitation"
-            >
-              {revokeMutation.isPending && revokeMutation.variables === invite.id ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Trash2 className="h-4 w-4" />
-              )}
-            </button>
-          </td>
+          {canRevokeInvite && (
+            <td className="p-4 align-middle text-right">
+              <button
+                onClick={() => onRevoke(invite.id)}
+                disabled={revokeMutation.isPending && revokeMutation.variables === invite.id}
+                className="text-muted-foreground hover:text-destructive transition-colors disabled:opacity-50"
+                title="Revoke Invitation"
+              >
+                {revokeMutation.isPending && revokeMutation.variables === invite.id ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Trash2 className="h-4 w-4" />
+                )}
+              </button>
+            </td>
+          )}
         </tr>
       ))}
     </tbody>
