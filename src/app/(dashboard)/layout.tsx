@@ -25,7 +25,12 @@ export default async function DashboardLayout({
   const currentOrganization = orgCookie ? JSON.parse(orgCookie) : null;
   
   const roleCookie = cookieStore.get("currentRole")?.value;
-  const currentRole = (roleCookie || null) as any;
+  let currentRole = (roleCookie || null) as any;
+  if (currentRole && currentRole.startsWith('{')) {
+    try {
+      currentRole = JSON.parse(currentRole).name;
+    } catch (e) {}
+  }
 
   const accessToken = cookieStore.get("accessToken")?.value || null;
 
@@ -62,7 +67,7 @@ export default async function DashboardLayout({
         },
       });
       const roleData = await roleResponse.json();
-      validatedCurrentRole = roleData.data?.role || null;
+      validatedCurrentRole = roleData.data?.role?.name || null;
     } catch (error) {
       console.error("Failed to fetch role for fallback organization", error);
       validatedCurrentRole = null;

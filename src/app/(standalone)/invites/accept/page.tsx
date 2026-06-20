@@ -130,7 +130,7 @@ export default function AcceptInvitePage() {
                 </div>
                  <div className="flex justify-between">
                     <span className="text-muted-foreground">Role:</span>
-                    <span className="font-medium capitalize">{inviteDetails.invitation.role.toLowerCase()}</span>
+                    <span className="font-semibold text-foreground capitalize">{inviteDetails.invitation.role?.name?.replace('_', ' ')}</span>
                 </div>
             </div>
         )}

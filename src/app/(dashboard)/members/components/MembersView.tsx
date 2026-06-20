@@ -10,6 +10,7 @@ import {
   updateMemberRole,
   updateMemberStatus,
   removeMember,
+  fetchOrganizationRoles,
 } from "@/services/organization.service";
 import {
   OrganizationMemberStatus,
@@ -55,14 +56,20 @@ export function MembersView() {
     enabled: !!currentOrganization?.id && activeTab === "invited",
   });
 
+  const { data: roles } = useQuery({
+    queryKey: ["roles", currentOrganization?.id],
+    queryFn: () => fetchOrganizationRoles(currentOrganization!.id),
+    enabled: !!currentOrganization?.id,
+  });
+
   const updateRoleMutation = useMutation({
     mutationFn: ({
       userId,
-      role,
+      roleId,
     }: {
       userId: string;
-      role: OrganizationRole;
-    }) => updateMemberRole(currentOrganization!.id, userId, role),
+      roleId: string;
+    }) => updateMemberRole(currentOrganization!.id, userId, roleId),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ["members", currentOrganization?.id],
@@ -214,6 +221,7 @@ export function MembersView() {
             ) : (
               <MembersTable
                 members={filteredMembers}
+                roles={roles}
                 isLoading={isLoading}
                 canManage={canManage}
                 activeTab={activeTab}

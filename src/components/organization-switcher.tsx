@@ -20,6 +20,8 @@ import { fetchCurrentMember } from "@/services/organization.service";
 import { CreateOrganizationDialog } from "@/components/create-organization-dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 
+import { OrganizationRole } from "@/types/organization";
+
 export function OrganizationSwitcher() {
   const { isMobile } = useSidebar();
   const {
@@ -31,7 +33,7 @@ export function OrganizationSwitcher() {
   const handleOrgChange = async (org: any) => {
     try {
       const member = await fetchCurrentMember(org.id);
-      setCurrentOrganization(org, member.role);
+      setCurrentOrganization(org, member.role.name as OrganizationRole);
     } catch (error) {
       console.error("Failed to fetch organization role", error);
       setCurrentOrganization(org);

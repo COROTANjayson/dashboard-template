@@ -1,6 +1,6 @@
 "use client";
 
-import { OrganizationMember, OrganizationMemberStatus, OrganizationRole } from "@/types/organization";
+import { OrganizationMember, OrganizationMemberStatus, Role } from "@/types/organization";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { Loader2, UserMinus, UserCheck, Trash2 } from "lucide-react";
@@ -14,6 +14,7 @@ import {
 
 interface MembersTableProps {
   members: OrganizationMember[] | undefined;
+  roles: Role[] | undefined;
   isLoading: boolean;
   canManage: boolean;
   activeTab?: string;
@@ -25,6 +26,7 @@ interface MembersTableProps {
 
 export function MembersTable({
   members,
+  roles,
   isLoading,
   canManage,
   activeTab,
@@ -33,10 +35,6 @@ export function MembersTable({
   setSuspendingMemberId,
   setRemovingMemberId,
 }: MembersTableProps) {
-  const roles = [
-    { value: OrganizationRole.ADMIN, label: "Admin" },
-    { value: OrganizationRole.MEMBER, label: "Member" },
-  ];
 
   if (isLoading) {
     return (
@@ -76,13 +74,13 @@ export function MembersTable({
           <td className="p-4 align-middle">{member.user?.email}</td>
           {activeTab !== "other" && (
             <td className="p-4 align-middle">
-              {canManage && member.role !== OrganizationRole.OWNER ? (
+              {canManage && member.role?.name !== 'owner' ? (
                 <Select
-                  value={member.role}
+                  value={member.roleId}
                   onValueChange={(value) => 
                     updateRoleMutation.mutate({ 
                       userId: member.userId, 
-                      role: value as OrganizationRole 
+                      roleId: value 
                     })
                   }
                   disabled={updateRoleMutation.isPending && updateRoleMutation.variables?.userId === member.userId}
@@ -94,16 +92,16 @@ export function MembersTable({
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {roles.map((r) => (
-                      <SelectItem key={r.value} value={r.value}>
-                        {r.label}
+                    {roles?.filter(r => r.name !== 'owner').map((r) => (
+                      <SelectItem key={r.id} value={r.id} className="capitalize">
+                        {r.name.replace('_', ' ')}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               ) : (
-                <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold bg-secondary text-secondary-foreground">
-                  {member.role}
+                <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold bg-secondary text-secondary-foreground capitalize">
+                  {member.role?.name.replace('_', ' ')}
                 </span>
               )}
             </td>
@@ -123,7 +121,7 @@ export function MembersTable({
           </td>
           {canManage && (
             <td className="p-4 align-middle text-right">
-              {member.role !== OrganizationRole.OWNER && (
+              {member.role?.name !== 'owner' && (
                 <div className="flex justify-end gap-2">
                   {member.status === OrganizationMemberStatus.ACTIVE ? (
                     <button

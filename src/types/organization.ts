@@ -1,6 +1,7 @@
 export enum OrganizationRole {
   OWNER = "owner",
   ADMIN = "admin",
+  TEAM_LEAD = "team_lead",
   MEMBER = "member",
 }
 
@@ -9,6 +10,13 @@ export enum OrganizationMemberStatus {
   ACTIVE = "active",
   SUSPENDED = "suspended",
   LEFT = "left",
+}
+
+export interface Role {
+  id: string;
+  name: string;
+  isDefault: boolean;
+  permissions?: string[];
 }
 
 export interface Organization {
@@ -24,7 +32,8 @@ export interface OrganizationMember {
   id: string;
   organizationId: string;
   userId: string;
-  role: OrganizationRole;
+  roleId: string;
+  role: Role;
   status: OrganizationMemberStatus;
   invitedAt: string;
   joinedAt: string | null;
@@ -41,7 +50,8 @@ export interface OrganizationInvitation {
   organizationId: string;
   inviterId: string;
   email: string;
-  role: OrganizationRole;
+  roleId: string;
+  role: Role;
   token: string;
   expiresAt: string;
   acceptedAt: string | null;

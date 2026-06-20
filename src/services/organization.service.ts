@@ -1,5 +1,5 @@
 import api from "@/lib/api";
-import { Organization, OrganizationInvitation, OrganizationMember, OrganizationMemberStatus } from "@/types/organization";
+import { Organization, OrganizationInvitation, OrganizationMember, OrganizationMemberStatus, Role } from "@/types/organization";
 
 export const fetchUserOrganizations = async (): Promise<Organization[]> => {
   const { data } = await api.get("/organizations");
@@ -16,6 +16,11 @@ export const fetchOrganizationMembers = async (orgId: string): Promise<Organizat
   return data.data;
 };
 
+export const fetchOrganizationRoles = async (orgId: string): Promise<Role[]> => {
+  const { data } = await api.get(`/organizations/${orgId}/roles`);
+  return data.data;
+};
+
 export const fetchCurrentMember = async (orgId: string): Promise<OrganizationMember> => {
   const { data } = await api.get(`/organizations/${orgId}/members/me`);
   return data.data;
@@ -26,8 +31,8 @@ export const fetchOrganizationInvitations = async (orgId: string): Promise<Organ
   return data.data;
 };
 
-export const inviteMember = async (orgId: string, email: string, role: string): Promise<OrganizationInvitation> => {
-  const { data } = await api.post(`/organizations/${orgId}/invitations`, { email, role });
+export const inviteMember = async (orgId: string, email: string, roleId: string): Promise<OrganizationInvitation> => {
+  const { data } = await api.post(`/organizations/${orgId}/invitations`, { email, roleId });
   return data.data;
 };
 
@@ -35,8 +40,8 @@ export const revokeInvitation = async (orgId: string, invitationId: string): Pro
   await api.delete(`/organizations/${orgId}/invitations/${invitationId}`);
 };
 
-export const updateMemberRole = async (orgId: string, userId: string, role: string): Promise<OrganizationMember> => {
-  const { data } = await api.patch(`/organizations/${orgId}/members/${userId}/role`, { role });
+export const updateMemberRole = async (orgId: string, userId: string, roleId: string): Promise<OrganizationMember> => {
+  const { data } = await api.patch(`/organizations/${orgId}/members/${userId}/role`, { roleId });
   return data.data;
 };
 

@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useOrganizationStore } from "@/app/store/organization.store";
-import { inviteMember } from "@/services/organization.service";
+import { inviteMember, fetchOrganizationRoles } from "@/services/organization.service";
 import {
   Dialog,
   DialogContent,
@@ -25,21 +25,27 @@ export function InviteMemberDialog() {
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const [email, setEmail] = useState("");
-  const [role, setRole] = useState<string>(OrganizationRole.MEMBER);
+  const [roleId, setRoleId] = useState<string>("");
+
+  const { data: roles, isLoading: rolesLoading } = useQuery({
+    queryKey: ["roles", currentOrganization?.id],
+    queryFn: () => fetchOrganizationRoles(currentOrganization!.id),
+    enabled: !!currentOrganization?.id && open,
+  });
 
   const inviteMutation = useMutation({
     mutationFn: () => {
         if (!currentOrganization?.id) {
             throw new Error("Organization not selected");
         }
-        return inviteMember(currentOrganization.id, email, role);
+        return inviteMember(currentOrganization.id, email, roleId);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["invitations", currentOrganization?.id] });
       toast.success("Invitation sent successfully");
       setOpen(false);
       setEmail("");
-      setRole(OrganizationRole.MEMBER);
+      setRoleId(roles?.find(r => r.name === 'member')?.id || "");
     },
     onError: (error: any) => {
       console.log("error", error)
@@ -85,12 +91,16 @@ export function InviteMemberDialog() {
               <Label htmlFor="role">Role</Label>
               <select 
                 id="role"
-                value={role} 
-                onChange={(e) => setRole(e.target.value)}
+                value={roleId} 
+                onChange={(e) => setRoleId(e.target.value)}
                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                <option value={OrganizationRole.MEMBER}>Member</option>
-                <option value={OrganizationRole.ADMIN}>Admin</option>
+                <option value="" disabled>Select a role</option>
+                {roles?.filter(r => r.name !== 'owner').map((r) => (
+                  <option key={r.id} value={r.id} className="capitalize">
+                    {r.name.replace('_', ' ')}
+                  </option>
+                ))}
               </select>
             </div>
           </div>

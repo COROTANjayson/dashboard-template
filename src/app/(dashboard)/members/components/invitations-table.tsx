@@ -52,8 +52,8 @@ export function InvitationsTable({
         <tr key={invite.id} className="border-b transition-colors hover:bg-muted/50">
           <td className="p-4 align-middle font-medium">{invite.email}</td>
           <td className="p-4 align-middle">
-            <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold bg-secondary text-secondary-foreground">
-              {invite.role}
+            <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold bg-secondary text-secondary-foreground capitalize">
+              {invite.role?.name?.replace('_', ' ')}
             </span>
           </td>
           <td className="p-4 align-middle text-orange-600 dark:text-orange-400">
