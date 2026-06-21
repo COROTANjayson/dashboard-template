@@ -32,8 +32,8 @@ export interface OrganizationMember {
   id: string;
   organizationId: string;
   userId: string;
-  roleId: string;
-  role: Role;
+  roleId?: string | null;
+  role?: Role | null;
   status: OrganizationMemberStatus;
   invitedAt: string;
   joinedAt: string | null;
@@ -50,8 +50,8 @@ export interface OrganizationInvitation {
   organizationId: string;
   inviterId: string;
   email: string;
-  roleId: string;
-  role: Role;
+  roleId?: string | null;
+  role?: Role | null;
   token: string;
   expiresAt: string;
   acceptedAt: string | null;

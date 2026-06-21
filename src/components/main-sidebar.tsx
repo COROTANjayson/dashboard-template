@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Server, Users, Plus } from "lucide-react";
+import { LayoutDashboard, Server, Users, Plus, Settings } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import {
   Sidebar,
@@ -110,6 +110,24 @@ export function MainSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
+        {isHydrated && hasPermission("role:read") && (
+          <SidebarGroup>
+            <SidebarGroupLabel>Settings</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem key="/settings/roles">
+                  <SidebarMenuButton asChild isActive={pathname.startsWith("/settings/roles")} tooltip="Roles & Permissions">
+                    <Link href="/settings/roles">
+                      <Settings />
+                      <span>Roles & Permissions</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
 
         {isHydrated && currentOrganization && (
           <SidebarGroup>

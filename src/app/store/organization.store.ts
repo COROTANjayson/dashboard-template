@@ -23,6 +23,7 @@ export const useOrganizationStore = create<OrganizationState>()((set, get) => ({
   isHydrated: false,
   hasPermission: (permission: string) => {
     const role = get().currentRole;
+    if (role?.name === 'owner') return true;
     return role?.permissions?.includes(permission) ?? false;
   },
   setOrganizations: (organizations) => set({ organizations }),
