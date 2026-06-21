@@ -1,6 +1,7 @@
 "use client";
 
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { useAuthStore } from "@/app/store/auth.store";
 import { authService } from "@/services/auth.service";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -39,8 +40,8 @@ export function ProfileView() {
   const [formData, setFormData] = useState<UpdateUserPayload>({
     firstName: "",
     lastName: "",
-    age: 0,
-    gender: "",
+    age: undefined,
+    gender: undefined,
   });
 
   // Sync form data when user data is fetched
@@ -49,9 +50,9 @@ export function ProfileView() {
       setFormData({
         firstName: user.firstName || "",
         lastName: user.lastName || "",
-        age: user.age || 0,
-        gender: user.gender || "",
-        avatar: user.avatar || "",
+        age: user.age ?? undefined,
+        gender: user.gender || undefined,
+        avatar: user.avatar || undefined,
       });
       // Sync store as well to ensure parity
       setUser(user);
@@ -62,16 +63,25 @@ export function ProfileView() {
   const { mutate: handleUpdate, isPending } = useMutation({
     mutationFn: (payload: UpdateUserPayload) => authService.updateMe(payload),
     onSuccess: (updatedUser: User) => {
-      setUser(updatedUser);
+      const mergedUser = { ...user, ...updatedUser } as User;
+      setUser(mergedUser);
       setIsSuccessVisible(true);
       setTimeout(() => setIsSuccessVisible(false), 3000);
       refetch();
     },
+    onError: (error: any) => {
+      console.error("Failed to update profile:", error);
+      toast.error(error?.response?.data?.message || error?.message || "Failed to update profile. Please try again.");
+    }
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    handleUpdate(formData);
+    const payload = { ...formData };
+    if (!payload.avatar) {
+      delete payload.avatar;
+    }
+    handleUpdate(payload);
   };
 
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -189,8 +199,8 @@ export function ProfileView() {
                         id="age"
                         type="number"
                         className="pl-9 bg-background/50 border-accent focus:ring-2 focus:ring-primary/20 transition-all"
-                        value={formData.age}
-                        onChange={(e) => setFormData({ ...formData, age: parseInt(e.target.value) || 0 })}
+                        value={formData.age === undefined ? "" : formData.age}
+                        onChange={(e) => setFormData({ ...formData, age: e.target.value ? parseInt(e.target.value) : undefined })}
                       />
                     </div>
                   </div>
