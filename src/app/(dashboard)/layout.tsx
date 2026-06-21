@@ -22,14 +22,29 @@ export default async function DashboardLayout({
   const user = userCookie ? JSON.parse(userCookie) : null;
   
   const orgCookie = cookieStore.get("currentOrganization")?.value;
-  const currentOrganization = orgCookie ? JSON.parse(orgCookie) : null;
+  let currentOrganization = null;
+  if (orgCookie) {
+    try {
+      const decodedOrg = decodeURIComponent(orgCookie);
+      currentOrganization = decodedOrg.startsWith('{') ? JSON.parse(decodedOrg) : null;
+    } catch (e) {
+      try {
+        currentOrganization = orgCookie.startsWith('{') ? JSON.parse(orgCookie) : null;
+      } catch (e2) {}
+    }
+  }
   
   const roleCookie = cookieStore.get("currentRole")?.value;
   let currentRole = null;
   if (roleCookie) {
     try {
-      currentRole = roleCookie.startsWith('{') ? JSON.parse(roleCookie) : null;
-    } catch (e) {}
+      const decodedRole = decodeURIComponent(roleCookie);
+      currentRole = decodedRole.startsWith('{') ? JSON.parse(decodedRole) : null;
+    } catch (e) {
+      try {
+        currentRole = roleCookie.startsWith('{') ? JSON.parse(roleCookie) : null;
+      } catch (e2) {}
+    }
   }
 
   const accessToken = cookieStore.get("accessToken")?.value || null;
@@ -59,18 +74,24 @@ export default async function DashboardLayout({
   // Fallback: If no organization is selected but the user has organizations, select the first one
   if (!validatedCurrentOrganization && organizations.length > 0) {
     validatedCurrentOrganization = organizations[0];
-    // We need to fetch the role for this organization since we don't have it in the cookie
+  }
+
+  // Always fetch the latest role for the active organization to keep permissions in sync
+  if (validatedCurrentOrganization) {
     try {
       const roleResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/organizations/${validatedCurrentOrganization.id}/members/me`, {
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },
+        cache: 'no-store'
       });
-      const roleData = await roleResponse.json();
-      validatedCurrentRole = roleData.data?.role || null;
+      if (roleResponse.ok) {
+        const roleData = await roleResponse.json();
+        validatedCurrentRole = roleData.data?.role || null;
+      }
     } catch (error) {
-      console.error("Failed to fetch role for fallback organization", error);
-      validatedCurrentRole = null;
+      console.error("Failed to fetch latest role for organization", error);
+      // Keep the cookie role as fallback if network fails
     }
   }
 

@@ -10,7 +10,10 @@ interface OrganizationState {
   currentRole: Role | null;
   isHydrated: boolean;
   setOrganizations: (organizations: Organization[]) => void;
-  setCurrentOrganization: (organization: Organization | null, role?: Role) => void;
+  setCurrentOrganization: (
+    organization: Organization | null,
+    role?: Role,
+  ) => void;
   setHydrated: (hydrated: boolean) => void;
   clearOrganizations: () => void;
   hasPermission: (permission: string) => boolean;
@@ -23,7 +26,8 @@ export const useOrganizationStore = create<OrganizationState>()((set, get) => ({
   isHydrated: false,
   hasPermission: (permission: string) => {
     const role = get().currentRole;
-    if (role?.name === 'owner') return true;
+    if (role?.name === "owner") return true;
+    console.log("ROLE PERMISSION:", role);
     return role?.permissions?.includes(permission) ?? false;
   },
   setOrganizations: (organizations) => set({ organizations }),
@@ -31,7 +35,9 @@ export const useOrganizationStore = create<OrganizationState>()((set, get) => ({
   setCurrentOrganization: (organization, role) => {
     if (typeof window !== "undefined") {
       if (organization) {
-        Cookies.set("currentOrganization", JSON.stringify(organization), { expires: 7 });
+        Cookies.set("currentOrganization", JSON.stringify(organization), {
+          expires: 7,
+        });
       } else {
         Cookies.remove("currentOrganization");
       }
@@ -43,9 +49,9 @@ export const useOrganizationStore = create<OrganizationState>()((set, get) => ({
       }
     }
 
-    set({ 
-      currentOrganization: organization, 
-      currentRole: role || null 
+    set({
+      currentOrganization: organization,
+      currentRole: role || null,
     });
   },
   clearOrganizations: () => {
@@ -53,10 +59,10 @@ export const useOrganizationStore = create<OrganizationState>()((set, get) => ({
       Cookies.remove("currentOrganization");
       Cookies.remove("currentRole");
     }
-    set({ 
-      organizations: [], 
+    set({
+      organizations: [],
       currentOrganization: null,
-      currentRole: null
+      currentRole: null,
     });
   },
 }));
