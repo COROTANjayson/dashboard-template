@@ -11,8 +11,8 @@ const api = axios.create({
 api.interceptors.request.use((config) => {
   const orgId = useOrganizationStore.getState().currentOrganization?.id;
 
-  console.log(`[API Request] ${config.method?.toUpperCase()} ${config.url}`, { 
-    orgId 
+  console.log(`[API Request] ${config.method?.toUpperCase()} ${config.url}`, {
+    orgId,
   });
 
   if (orgId) {
@@ -43,16 +43,22 @@ api.interceptors.response.use(
     const originalRequest = error.config;
 
     if (error.response?.status === 401 && !originalRequest._retry) {
-      if (originalRequest.url?.includes("/auth/login")) {
+      // Prevent loops on login or refresh endpoints
+      if (
+        originalRequest.url?.includes("/auth/login") ||
+        originalRequest.url?.includes("/auth/refresh")
+      ) {
         return Promise.reject(error);
       }
 
       if (isRefreshing) {
         return new Promise(function (resolve, reject) {
+          // Stamp the queued request so it doesn't loop if it fails again
+          originalRequest._retry = true;
           failedQueue.push({ resolve, reject });
         })
-          .then((token) => {
-            originalRequest.headers["Authorization"] = "Bearer " + token;
+          .then(() => {
+            // httpOnly cookies will be sent automatically by the browser.
             return api(originalRequest);
           })
           .catch((err) => {
@@ -67,13 +73,14 @@ api.interceptors.response.use(
         const { data } = await axios.post(
           `${process.env.NEXT_PUBLIC_API_URL}/auth/refresh`,
           {},
-          { withCredentials: true }
+          { withCredentials: true },
         );
 
         useAuthStore.getState().setAuth({
           isAuthenticated: true,
         });
 
+        // Pass null to the queue (it's ignored by our updated then() block anyway)
         processQueue(null);
         return api(originalRequest);
       } catch (err: any) {
@@ -90,7 +97,7 @@ api.interceptors.response.use(
     }
 
     return Promise.reject(error);
-  }
+  },
 );
 
 export default api;
