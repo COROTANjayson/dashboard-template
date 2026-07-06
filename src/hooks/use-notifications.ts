@@ -44,11 +44,11 @@ export function useNotifications(accessToken: string | null) {
 
     // Connect to the /notifications namespace
     const socket = io(`${SOCKET_URL}/notifications`, {
-      auth: { token: accessToken },
+      withCredentials: true,
       reconnection: true,
       reconnectionAttempts: 5,
       reconnectionDelay: 1000,
-      transports: ["websocket"], // Force websocket to avoid polling issues
+      transports: ["websocket", "polling"], // Allow polling to handle cookies correctly if websocket doesn't
     });
 
     socketRef.current = socket;

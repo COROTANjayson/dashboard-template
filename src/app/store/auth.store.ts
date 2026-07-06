@@ -8,12 +8,9 @@ import { User } from "@/types/auth";
 interface AuthState {
   isAuthenticated: boolean;
   user: User | null;
-  accessToken: string | null;
-  refreshToken: string | null;
-  login: (data: { accessToken: string; refreshToken: string }, user?: User) => void;
+  login: (user?: User) => void;
   logout: () => void;
   setUser: (user: User) => void;
-  setTokens: (tokens: { accessToken: string; refreshToken: string }) => void;
   setAuth: (data: Partial<AuthState>) => void;
 }
 
@@ -22,46 +19,27 @@ export const useAuthStore = create<AuthState>()(
     (set) => ({
       isAuthenticated: false,
       user: null,
-      accessToken: null,
-      refreshToken: null,
-      login: (data, user) => {
-        Cookies.set("accessToken", data.accessToken, { expires: 30 });
-        Cookies.set("refreshToken", data.refreshToken, { expires: 30 });
+      login: (user) => {
         if (user) {
           Cookies.set("user", JSON.stringify(user), { expires: 30 });
         }
         set({
           isAuthenticated: true,
           user: user || null,
-          accessToken: data.accessToken,
-          refreshToken: data.refreshToken,
         });
       },
       logout: () => {
-        Cookies.remove("accessToken");
-        Cookies.remove("refreshToken");
         Cookies.remove("user");
         Cookies.remove("currentOrganization");
         Cookies.remove("currentRole");
         set({
           isAuthenticated: false,
           user: null,
-          accessToken: null,
-          refreshToken: null,
         });
       },
       setUser: (user) => {
         Cookies.set("user", JSON.stringify(user), { expires: 30 });
         set({ user });
-      },
-      setTokens: (tokens) => {
-        Cookies.set("accessToken", tokens.accessToken, { expires: 30 });
-        Cookies.set("refreshToken", tokens.refreshToken, { expires: 30 });
-        set({
-          accessToken: tokens.accessToken,
-          refreshToken: tokens.refreshToken,
-          isAuthenticated: true,
-        });
       },
       setAuth: (data) => set((state) => ({ ...state, ...data })),
     }),

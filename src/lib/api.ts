@@ -9,17 +9,11 @@ const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
-  const token = useAuthStore.getState().accessToken;
   const orgId = useOrganizationStore.getState().currentOrganization?.id;
 
   console.log(`[API Request] ${config.method?.toUpperCase()} ${config.url}`, { 
-    hasToken: !!token,
     orgId 
   });
-
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
 
   if (orgId) {
     config.headers["X-Organization-Id"] = orgId;
@@ -76,19 +70,11 @@ api.interceptors.response.use(
           { withCredentials: true }
         );
 
-        const { accessToken } = data.data;
-
         useAuthStore.getState().setAuth({
-          accessToken,
           isAuthenticated: true,
         });
 
-        Cookies.set("accessToken", accessToken, { expires: 30 });
-
-        api.defaults.headers.common["Authorization"] = "Bearer " + accessToken;
-        originalRequest.headers["Authorization"] = "Bearer " + accessToken;
-
-        processQueue(null, accessToken);
+        processQueue(null);
         return api(originalRequest);
       } catch (err: any) {
         processQueue(err, null);

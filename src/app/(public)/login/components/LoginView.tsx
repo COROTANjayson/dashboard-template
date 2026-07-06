@@ -34,16 +34,11 @@ export function LoginView() {
     mutationFn: authService.login,
     onSuccess: async (data: LoginResponse) => {
       try {
-        // 1. Set tokens first so subsequent API calls (like getMe) have the Authorization header
-        useAuthStore.getState().setTokens({
-          accessToken: data.accessToken,
-          refreshToken: data.refreshToken,
-        });
-
-        // 2. Fetch user info
+        // Fetch user info (tokens are now set via httpOnly cookies)
         const user = await authService.getMe();
         
-        // 3. Update store with user info
+        // Update store with user info
+        login(user);
         useAuthStore.getState().setUser(user);
         
         router.push("/dashboard");

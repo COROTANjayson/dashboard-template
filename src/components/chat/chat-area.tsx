@@ -62,7 +62,8 @@ export function ChatArea({ teamId }: ChatAreaProps) {
     const socketUrl = new URL(apiUrl).origin + "/chat";
 
     const socket = io(socketUrl, {
-      auth: { token: accessToken },
+      withCredentials: true,
+      transports: ["websocket", "polling"],
     });
     socketRef.current = socket;
 

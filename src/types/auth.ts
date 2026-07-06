@@ -28,13 +28,9 @@ export interface UpdateUserPayload {
 }
 
 export interface AuthTokens {
-  accessToken: string;
-  refreshToken: string;
 }
 
 export interface LoginResponse {
-  accessToken: string;
-  refreshToken: string;
   csrfToken: string;
 }
 
@@ -42,8 +38,6 @@ export interface RegisterResponse {
   id: string;
   email: string;
   isVerified: boolean;
-  accessToken: string;
-  refreshToken: string;
 }
 
 export interface RegisterPayload {
