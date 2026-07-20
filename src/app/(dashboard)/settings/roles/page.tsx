@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Plus, ShieldAlert, Trash2, Edit2, Shield } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import { Plus, Trash2, Edit2, Shield } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { useOrganizationStore } from "@/app/store/organization.store";
@@ -21,6 +21,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
+import { AccessDenied } from "@/components/access-denied";
 
 export default function RolesPage() {
   const router = useRouter();
@@ -30,31 +31,30 @@ export default function RolesPage() {
 
   const canManageRoles = hasPermission("role:create") || hasPermission("role:update");
 
-  useEffect(() => {
-    if (currentOrganization) {
-      loadRoles();
-    }
-  }, [currentOrganization]);
-
-  const loadRoles = async () => {
+  const loadRoles = useCallback(async () => {
+    if (!currentOrganization) return;
     try {
       setIsLoading(true);
-      const data = await fetchRoles(currentOrganization!.id);
+      const data = await fetchRoles(currentOrganization.id);
       setRoles(data);
-    } catch (error) {
+    } catch {
       toast.error("Failed to load roles");
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [currentOrganization]);
+
+  useEffect(() => {
+    void loadRoles();
+  }, [loadRoles]);
 
   const handleDelete = async (roleId: string) => {
     try {
       await deleteRole(currentOrganization!.id, roleId);
       toast.success("Role deleted successfully");
       loadRoles();
-    } catch (error: any) {
-      toast.error(error.message || "Failed to delete role");
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : "Failed to delete role");
     }
   };
 
@@ -67,15 +67,7 @@ export default function RolesPage() {
   };
 
   if (!hasPermission("role:read")) {
-    return (
-      <div className="flex flex-col items-center justify-center p-12 text-center">
-        <ShieldAlert className="h-12 w-12 text-destructive mb-4" />
-        <h2 className="text-2xl font-bold">Access Denied</h2>
-        <p className="text-muted-foreground mt-2">
-          You do not have permission to view roles.
-        </p>
-      </div>
-    );
+    return <AccessDenied description="You do not have permission to view roles." />;
   }
 
   return (
@@ -139,7 +131,7 @@ export default function RolesPage() {
                       </div>
                     </td>
                     <td className="p-4 align-middle text-muted-foreground">
-                      {role.permissions?.length || 0} permissions
+                      {role.permissions.length} permissions
                     </td>
                     <td className="p-4 align-middle">
                       <div className="flex justify-end gap-2">
@@ -165,7 +157,7 @@ export default function RolesPage() {
                               <AlertDialogHeader>
                                 <AlertDialogTitle>Delete Role</AlertDialogTitle>
                                 <AlertDialogDescription>
-                                  Are you sure you want to delete the "{role.name}" role? Any members with this role will lose their permissions.
+                                  Are you sure you want to delete the &quot;{role.name}&quot; role? Any members with this role will lose their permissions.
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
                               <AlertDialogFooter>

@@ -56,7 +56,7 @@ export function ChatArea({ teamId }: ChatAreaProps) {
 
   // Handle Socket.IO connection
   useEffect(() => {
-    if (!accessToken) return;
+    if (!accessToken || !currentOrg?.id) return;
 
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/api/v1";
     const socketUrl = new URL(apiUrl).origin + "/chat";
@@ -69,14 +69,13 @@ export function ChatArea({ teamId }: ChatAreaProps) {
 
     socket.on("connect", () => {
       console.log("Connected to chat", socket.id);
-      socket.emit("join-team", { teamId });
+      socket.emit("join-team", { orgId: currentOrg.id, teamId });
       setError(null);
     });
 
     socket.on("error", (err: unknown) => {
       console.error("Chat socket error:", err);
-      // @ts-ignore - socket error type differs depending on event
-      setError(err?.message || "Socket error");
+      setError(err instanceof Error ? err.message : "Socket error");
     });
 
     socket.on("joined-team", (data) => {
@@ -102,13 +101,14 @@ export function ChatArea({ teamId }: ChatAreaProps) {
       socket.emit("leave-team", { teamId });
       socket.disconnect();
     };
-  }, [teamId, accessToken]);
+  }, [teamId, accessToken, currentOrg?.id]);
 
   const handleSend = (e?: React.FormEvent) => {
     e?.preventDefault();
     if (!inputValue.trim() || !socketRef.current) return;
 
     socketRef.current.emit("send-message", {
+      orgId: currentOrg?.id,
       teamId,
       content: inputValue.trim(),
     });

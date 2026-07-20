@@ -6,6 +6,7 @@ import { UserMenu } from "@/components/user-menu";
 import { SettingsNav } from "@/components/settings-nav";
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
+import { Organization, OrganizationMember } from "@/types/organization";
 
 export default async function SettingsLayout({
   children,
@@ -15,38 +16,22 @@ export default async function SettingsLayout({
   const cookieStore = await cookies();
   const isAuthenticated = !!cookieStore.get("accessToken")?.value;
 
-  const userCookie = cookieStore.get("user")?.value;
-  const user = userCookie ? JSON.parse(userCookie) : null;
-  
   const orgCookie = cookieStore.get("currentOrganization")?.value;
-  let currentOrganization = null;
+  let currentOrganization: Organization | null = null;
   if (orgCookie) {
     try {
       const decodedOrg = decodeURIComponent(orgCookie);
-      currentOrganization = decodedOrg.startsWith('{') ? JSON.parse(decodedOrg) : null;
-    } catch (e) {
+      currentOrganization = decodedOrg.startsWith('{') ? JSON.parse(decodedOrg) as Organization : null;
+    } catch {
       try {
-        currentOrganization = orgCookie.startsWith('{') ? JSON.parse(orgCookie) : null;
-      } catch (e2) {}
-    }
-  }
-  
-  const roleCookie = cookieStore.get("currentRole")?.value;
-  let currentRole = null;
-  if (roleCookie) {
-    try {
-      const decodedRole = decodeURIComponent(roleCookie);
-      currentRole = decodedRole.startsWith('{') ? JSON.parse(decodedRole) : null;
-    } catch (e) {
-      try {
-        currentRole = roleCookie.startsWith('{') ? JSON.parse(roleCookie) : null;
-      } catch (e2) {}
+        currentOrganization = orgCookie.startsWith('{') ? JSON.parse(orgCookie) as Organization : null;
+      } catch {}
     }
   }
 
   const accessToken = cookieStore.get("accessToken")?.value || null;
 
-  let organizations = [];
+  let organizations: Organization[] = [];
   if (accessToken) {
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/organizations`, {
@@ -62,30 +47,29 @@ export default async function SettingsLayout({
   }
 
   // Verify that the current organization is valid for the user
-  let validatedCurrentOrganization = currentOrganization && organizations.find((org: any) => org.id === currentOrganization.id) ? currentOrganization : null;
-  let validatedCurrentRole = validatedCurrentOrganization ? currentRole : null;
+  let validatedCurrentOrganization = currentOrganization && organizations.find((org) => org.id === currentOrganization?.id) ? currentOrganization : null;
+  let validatedCurrentMember: OrganizationMember | null = null;
 
   // Fallback: If no organization is selected but the user has organizations, select the first one
   if (!validatedCurrentOrganization && organizations.length > 0) {
     validatedCurrentOrganization = organizations[0];
   }
 
-  // Always fetch the latest role for the active organization to keep permissions in sync
+  // Always fetch authoritative membership and permissions for the active organization.
   if (validatedCurrentOrganization) {
     try {
-      const roleResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/organizations/${validatedCurrentOrganization.id}/members/me`, {
+      const memberResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/organizations/${validatedCurrentOrganization.id}/members/me`, {
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },
         cache: 'no-store'
       });
-      if (roleResponse.ok) {
-        const roleData = await roleResponse.json();
-        validatedCurrentRole = roleData.data?.role || null;
+      if (memberResponse.ok) {
+        const memberData = await memberResponse.json();
+        validatedCurrentMember = memberData.data || null;
       }
     } catch (error) {
-      console.error("Failed to fetch latest role for organization", error);
-      // Keep the cookie role as fallback if network fails
+      console.error("Failed to fetch current organization membership", error);
     }
   }
 
@@ -93,7 +77,7 @@ export default async function SettingsLayout({
     <AuthGuard initialIsAuthenticated={isAuthenticated}>
       <StoreHydrator 
         currentOrganization={validatedCurrentOrganization} 
-        currentRole={validatedCurrentRole}
+        currentMember={validatedCurrentMember}
         organizations={organizations}
       >
         <div className="flex min-h-screen flex-col bg-background">

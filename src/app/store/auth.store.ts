@@ -1,12 +1,13 @@
 "use client";
 
 import { create } from "zustand";
-import { persist, createJSONStorage } from "zustand/middleware";
+import { persist } from "zustand/middleware";
 import Cookies from "js-cookie";
 import { User } from "@/types/auth";
 
 interface AuthState {
   isAuthenticated: boolean;
+  accessToken: string | null;
   user: User | null;
   login: (user?: User) => void;
   logout: () => void;
@@ -18,6 +19,7 @@ export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
       isAuthenticated: false,
+      accessToken: null,
       user: null,
       login: (user) => {
         if (user) {
@@ -25,6 +27,7 @@ export const useAuthStore = create<AuthState>()(
         }
         set({
           isAuthenticated: true,
+          accessToken: null,
           user: user || null,
         });
       },
@@ -34,6 +37,7 @@ export const useAuthStore = create<AuthState>()(
         Cookies.remove("currentRole");
         set({
           isAuthenticated: false,
+          accessToken: null,
           user: null,
         });
       },

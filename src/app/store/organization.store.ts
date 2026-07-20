@@ -2,37 +2,45 @@
 
 import { create } from "zustand";
 import Cookies from "js-cookie";
-import { Organization, OrganizationRole, Role } from "@/types/organization";
+import {
+  Organization,
+  OrganizationMember,
+  OrganizationMemberStatus,
+  OrganizationPermission,
+  Role,
+} from "@/types/organization";
 
 interface OrganizationState {
   organizations: Organization[];
   currentOrganization: Organization | null;
+  currentMember: OrganizationMember | null;
   currentRole: Role | null;
   isHydrated: boolean;
   setOrganizations: (organizations: Organization[]) => void;
   setCurrentOrganization: (
     organization: Organization | null,
-    role?: Role,
+    member?: OrganizationMember | null,
   ) => void;
   setHydrated: (hydrated: boolean) => void;
   clearOrganizations: () => void;
-  hasPermission: (permission: string) => boolean;
+  hasPermission: (permission: OrganizationPermission) => boolean;
 }
 
 export const useOrganizationStore = create<OrganizationState>()((set, get) => ({
   organizations: [],
   currentOrganization: null,
+  currentMember: null,
   currentRole: null,
   isHydrated: false,
-  hasPermission: (permission: string) => {
-    const role = get().currentRole;
+  hasPermission: (permission) => {
+    const { currentMember, currentRole: role } = get();
+    if (currentMember?.status !== OrganizationMemberStatus.ACTIVE) return false;
     if (role?.name === "owner") return true;
-    console.log("ROLE PERMISSION:", role);
-    return role?.permissions?.includes(permission) ?? false;
+    return role?.permissions.includes(permission) ?? false;
   },
   setOrganizations: (organizations) => set({ organizations }),
   setHydrated: (isHydrated) => set({ isHydrated }),
-  setCurrentOrganization: (organization, role) => {
+  setCurrentOrganization: (organization, member = null) => {
     if (typeof window !== "undefined") {
       if (organization) {
         Cookies.set("currentOrganization", JSON.stringify(organization), {
@@ -42,16 +50,13 @@ export const useOrganizationStore = create<OrganizationState>()((set, get) => ({
         Cookies.remove("currentOrganization");
       }
 
-      if (role) {
-        Cookies.set("currentRole", JSON.stringify(role), { expires: 7 });
-      } else {
-        Cookies.remove("currentRole");
-      }
+      Cookies.remove("currentRole");
     }
 
     set({
       currentOrganization: organization,
-      currentRole: role || null,
+      currentMember: member,
+      currentRole: member?.role ?? null,
     });
   },
   clearOrganizations: () => {
@@ -62,6 +67,7 @@ export const useOrganizationStore = create<OrganizationState>()((set, get) => ({
     set({
       organizations: [],
       currentOrganization: null,
+      currentMember: null,
       currentRole: null,
     });
   },

@@ -20,7 +20,7 @@ import { fetchCurrentMember } from "@/services/organization.service";
 import { CreateOrganizationDialog } from "@/components/create-organization-dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 
-import { OrganizationRole, Role } from "@/types/organization";
+import { Organization } from "@/types/organization";
 
 export function OrganizationSwitcher() {
   const { isMobile } = useSidebar();
@@ -30,10 +30,10 @@ export function OrganizationSwitcher() {
     setCurrentOrganization,
     isHydrated,
   } = useOrganizationStore();
-  const handleOrgChange = async (org: any) => {
+  const handleOrgChange = async (org: Organization) => {
     try {
       const member = await fetchCurrentMember(org.id);
-      setCurrentOrganization(org, member.role as Role);
+      setCurrentOrganization(org, member);
     } catch (error) {
       console.error("Failed to fetch organization role", error);
       setCurrentOrganization(org);
@@ -98,7 +98,7 @@ export function OrganizationSwitcher() {
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-semibold">{activeOrg.name}</span>
                 <span className="truncate text-xs">
-                  {(activeOrg as any).slug}
+                  {activeOrg.slug}
                 </span>
               </div>
               <ChevronsUpDown className="ml-auto size-4" />

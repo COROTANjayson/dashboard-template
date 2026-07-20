@@ -4,12 +4,13 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { useOrganizationStore } from "@/app/store/organization.store";
 import { RoleForm } from "@/components/roles/role-form";
-import { ChevronLeft, ShieldAlert } from "lucide-react";
+import { ChevronLeft } from "lucide-react";
 import Link from "next/link";
 import { fetchRoles } from "@/services/role.service";
 import { Role } from "@/types/organization";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
+import { AccessDenied } from "@/components/access-denied";
 
 export default function EditRolePage() {
   const params = useParams();
@@ -30,7 +31,7 @@ export default function EditRolePage() {
           } else {
             toast.error("Role not found");
           }
-        } catch (error) {
+        } catch {
           toast.error("Failed to load role details");
         } finally {
           setIsLoading(false);
@@ -41,15 +42,7 @@ export default function EditRolePage() {
   }, [currentOrganization, roleId]);
 
   if (!hasPermission("role:update")) {
-    return (
-      <div className="flex flex-col items-center justify-center p-12 text-center">
-        <ShieldAlert className="h-12 w-12 text-destructive mb-4" />
-        <h2 className="text-2xl font-bold">Access Denied</h2>
-        <p className="text-muted-foreground mt-2">
-          You do not have permission to edit roles.
-        </p>
-      </div>
-    );
+    return <AccessDenied description="You do not have permission to edit roles." />;
   }
 
   return (

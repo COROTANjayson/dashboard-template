@@ -2,22 +2,15 @@
 
 import { useOrganizationStore } from "@/app/store/organization.store";
 import { RoleForm } from "@/components/roles/role-form";
-import { ChevronLeft, ShieldAlert } from "lucide-react";
+import { ChevronLeft } from "lucide-react";
 import Link from "next/link";
+import { AccessDenied } from "@/components/access-denied";
 
 export default function NewRolePage() {
   const { currentOrganization, hasPermission } = useOrganizationStore();
 
   if (!hasPermission("role:create")) {
-    return (
-      <div className="flex flex-col items-center justify-center p-12 text-center">
-        <ShieldAlert className="h-12 w-12 text-destructive mb-4" />
-        <h2 className="text-2xl font-bold">Access Denied</h2>
-        <p className="text-muted-foreground mt-2">
-          You do not have permission to create roles.
-        </p>
-      </div>
-    );
+    return <AccessDenied description="You do not have permission to create roles." />;
   }
 
   return (

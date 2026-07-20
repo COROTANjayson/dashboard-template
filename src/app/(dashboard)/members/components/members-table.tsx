@@ -21,8 +21,16 @@ interface MembersTableProps {
   canRemove: boolean;
   currentRoleName: string | null;
   activeTab?: string;
-  updateRoleMutation: any;
-  updateStatusMutation: any;
+  updateRoleMutation: {
+    mutate: (input: { userId: string; roleId: string }) => void;
+    isPending: boolean;
+    variables?: { userId: string; roleId: string };
+  };
+  updateStatusMutation: {
+    mutate: (input: { userId: string; status: OrganizationMemberStatus }) => void;
+    isPending: boolean;
+    variables?: { userId: string; status: OrganizationMemberStatus };
+  };
   setSuspendingMemberId: (id: string | null) => void;
   setRemovingMemberId: (id: string | null) => void;
 }
@@ -82,7 +90,7 @@ export function MembersTable({
             <td className="p-4 align-middle">
               {canUpdateRole && (currentRoleName === 'owner' || member.role?.name !== 'owner') ? (
                 <Select
-                  value={member.roleId}
+                  value={member.roleId ?? undefined}
                   onValueChange={(value) => 
                     updateRoleMutation.mutate({ 
                       userId: member.userId, 

@@ -12,11 +12,34 @@ export enum OrganizationMemberStatus {
   LEFT = "left",
 }
 
+export const OrganizationPermission = {
+  ORG_READ: "org:read",
+  ORG_UPDATE: "org:update",
+  ORG_DELETE: "org:delete",
+  MEMBER_LIST: "member:list",
+  MEMBER_INVITE: "member:invite",
+  MEMBER_INVITE_REVOKE: "member:invite-revoke",
+  MEMBER_UPDATE_ROLE: "member:update-role",
+  MEMBER_UPDATE_STATUS: "member:update-status",
+  MEMBER_REMOVE: "member:remove",
+  TEAM_CREATE: "team:create",
+  TEAM_UPDATE: "team:update",
+  TEAM_DELETE: "team:delete",
+  TEAM_READ: "team:read",
+  ROLE_CREATE: "role:create",
+  ROLE_UPDATE: "role:update",
+  ROLE_DELETE: "role:delete",
+  ROLE_READ: "role:read",
+} as const;
+
+export type OrganizationPermission =
+  (typeof OrganizationPermission)[keyof typeof OrganizationPermission];
+
 export interface Role {
   id: string;
   name: string;
   isDefault: boolean;
-  permissions?: string[];
+  permissions: OrganizationPermission[];
 }
 
 export interface Organization {

@@ -9,6 +9,7 @@ import { UserMenu } from "@/components/user-menu";
 import { Toaster } from "@/components/ui/sonner";
 import { NotificationList } from "@/components/notifications/notification-list";
 import { NotificationProvider } from "@/providers/notification-provider";
+import { Organization, OrganizationMember } from "@/types/organization";
 
 export default async function DashboardLayout({
   children,
@@ -18,38 +19,22 @@ export default async function DashboardLayout({
   const cookieStore = await cookies();
   const isAuthenticated = !!cookieStore.get("accessToken")?.value;
   
-  const userCookie = cookieStore.get("user")?.value;
-  const user = userCookie ? JSON.parse(userCookie) : null;
-  
   const orgCookie = cookieStore.get("currentOrganization")?.value;
-  let currentOrganization = null;
+  let currentOrganization: Organization | null = null;
   if (orgCookie) {
     try {
       const decodedOrg = decodeURIComponent(orgCookie);
-      currentOrganization = decodedOrg.startsWith('{') ? JSON.parse(decodedOrg) : null;
-    } catch (e) {
+      currentOrganization = decodedOrg.startsWith('{') ? JSON.parse(decodedOrg) as Organization : null;
+    } catch {
       try {
-        currentOrganization = orgCookie.startsWith('{') ? JSON.parse(orgCookie) : null;
-      } catch (e2) {}
-    }
-  }
-  
-  const roleCookie = cookieStore.get("currentRole")?.value;
-  let currentRole = null;
-  if (roleCookie) {
-    try {
-      const decodedRole = decodeURIComponent(roleCookie);
-      currentRole = decodedRole.startsWith('{') ? JSON.parse(decodedRole) : null;
-    } catch (e) {
-      try {
-        currentRole = roleCookie.startsWith('{') ? JSON.parse(roleCookie) : null;
-      } catch (e2) {}
+        currentOrganization = orgCookie.startsWith('{') ? JSON.parse(orgCookie) as Organization : null;
+      } catch {}
     }
   }
 
   const accessToken = cookieStore.get("accessToken")?.value || null;
 
-  let organizations = [];
+  let organizations: Organization[] = [];
   if (accessToken) {
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/organizations`, {
@@ -65,33 +50,29 @@ export default async function DashboardLayout({
   }
   
   // Verify that the current organization is valid for the user
-  let validatedCurrentOrganization = currentOrganization && organizations.find((org: any) => org.id === currentOrganization.id) ? currentOrganization : null;
-    
-  // If we invalidated the org, we should also invalidate the role unless we can re-verify it (which we can't easily here without another call)
-  // Logic: if validatedCurrentOrganization is null, role should probably be null too.
-  let validatedCurrentRole = validatedCurrentOrganization ? currentRole : null;
+  let validatedCurrentOrganization = currentOrganization && organizations.find((org) => org.id === currentOrganization?.id) ? currentOrganization : null;
+  let validatedCurrentMember: OrganizationMember | null = null;
 
   // Fallback: If no organization is selected but the user has organizations, select the first one
   if (!validatedCurrentOrganization && organizations.length > 0) {
     validatedCurrentOrganization = organizations[0];
   }
 
-  // Always fetch the latest role for the active organization to keep permissions in sync
+  // Always fetch authoritative membership and permissions for the active organization.
   if (validatedCurrentOrganization) {
     try {
-      const roleResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/organizations/${validatedCurrentOrganization.id}/members/me`, {
+      const memberResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/organizations/${validatedCurrentOrganization.id}/members/me`, {
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },
         cache: 'no-store'
       });
-      if (roleResponse.ok) {
-        const roleData = await roleResponse.json();
-        validatedCurrentRole = roleData.data?.role || null;
+      if (memberResponse.ok) {
+        const memberData = await memberResponse.json();
+        validatedCurrentMember = memberData.data || null;
       }
     } catch (error) {
-      console.error("Failed to fetch latest role for organization", error);
-      // Keep the cookie role as fallback if network fails
+      console.error("Failed to fetch current organization membership", error);
     }
   }
 
@@ -99,7 +80,7 @@ export default async function DashboardLayout({
     <AuthGuard initialIsAuthenticated={isAuthenticated}>
       <StoreHydrator 
         currentOrganization={validatedCurrentOrganization} 
-        currentRole={validatedCurrentRole}
+        currentMember={validatedCurrentMember}
         organizations={organizations}
       >
         <NotificationProvider>
